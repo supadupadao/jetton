@@ -1,5 +1,5 @@
 import { Blockchain, SandboxContract, TreasuryContract } from '@ton/sandbox';
-import { Builder, Slice, toNano } from '@ton/core';
+import { Builder, toNano } from '@ton/core';
 import { JettonWallet } from '../build/Jetton/tact_JettonWallet';
 import { JettonMaster } from '../build/Jetton/tact_JettonMaster';
 import '@ton/test-utils';
@@ -92,5 +92,65 @@ describe('JettonMaster', () => {
 
         let otherJettonWalletData = await otherJettonWallet.getGetWalletData();
         expect(otherJettonWalletData.balance).toEqual(toNano("228"));
+    });
+
+    it('should not transfer tokens not owner', async () => {
+        const transferResult = await jettonWallet.send(
+            other.getSender(),
+            {
+                value: toNano("0.05"),
+            },
+            {
+                $$type: 'JettonTransfer',
+                query_id: 0n,
+                amount: toNano("228"),
+                destination: other.address,
+                custom_payload: null,
+                forward_payload: new Builder().asSlice(),
+                forward_ton_amount: 0n,
+                response_destination: other.address,
+            }
+        );
+        expect(transferResult.transactions).toHaveTransaction({
+            from: other.address,
+            to: jettonWallet.address,
+            deploy: false,
+            success: false,
+            op: 0x0f8a7ea5,
+            exitCode: 132,
+        });
+
+        let jettonWalletData = await jettonWallet.getGetWalletData();
+        expect(jettonWalletData.balance).toEqual(toNano("1337"));
+    });
+
+    it('should not transfer tokens not enough amount', async () => {
+        const transferResult = await jettonWallet.send(
+            deployer.getSender(),
+            {
+                value: toNano("0.05"),
+            },
+            {
+                $$type: 'JettonTransfer',
+                query_id: 0n,
+                amount: toNano("100500"),
+                destination: other.address,
+                custom_payload: null,
+                forward_payload: new Builder().asSlice(),
+                forward_ton_amount: 0n,
+                response_destination: other.address,
+            }
+        );
+        expect(transferResult.transactions).toHaveTransaction({
+            from: deployer.address,
+            to: jettonWallet.address,
+            deploy: false,
+            success: false,
+            op: 0x0f8a7ea5,
+            exitCode: 6901,
+        });
+
+        let jettonWalletData = await jettonWallet.getGetWalletData();
+        expect(jettonWalletData.balance).toEqual(toNano("1337"));
     });
 });

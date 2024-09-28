@@ -51,6 +51,14 @@ describe('JettonMaster', () => {
             to: jettonMaster.address,
             success: true,
             deploy: true,
+            op: 0x133701,
+        });
+        expect(deployResult.transactions).toHaveTransaction({
+            from: jettonMaster.address,
+            to: deployer.address,
+            success: true,
+            deploy: false,
+            op: 0x133702,
         });
     });
 
@@ -92,6 +100,8 @@ describe('JettonMaster', () => {
             to: jettonMaster.address,
             success: false,
             deploy: false,
+            op: 0x133701,
+            exitCode: 6903,
         });
     });
 
@@ -116,6 +126,7 @@ describe('JettonMaster', () => {
             to: jettonMaster.address,
             success: false,
             deploy: false,
+            op: 0x133701,
             exitCode: 132,
         });
     });
@@ -138,6 +149,7 @@ describe('JettonMaster', () => {
             to: jettonMaster.address,
             success: true,
             deploy: false,
+            op: 0x133703,
         });
 
         // Jetton description
@@ -157,6 +169,7 @@ describe('JettonMaster', () => {
             to: jettonMaster.address,
             success: true,
             deploy: false,
+            op: 0x133703,
         });
 
         // Jetton symbol
@@ -176,6 +189,7 @@ describe('JettonMaster', () => {
             to: jettonMaster.address,
             success: true,
             deploy: false,
+            op: 0x133703,
         });
 
         // Jetton max_supply
@@ -195,6 +209,7 @@ describe('JettonMaster', () => {
             to: jettonMaster.address,
             success: true,
             deploy: false,
+            op: 0x133703,
         });
 
         // Checks
@@ -221,12 +236,14 @@ describe('JettonMaster', () => {
             to: jettonMaster.address,
             success: true,
             deploy: false,
+            op: 0x133704,
         });
         expect(mintResult.transactions).toHaveTransaction({
             from: jettonMaster.address,
             to: jettonWallet.address,
             success: true,
             deploy: true,
+            op: 0x178d4519,
         });
 
         let jettonMasterMetadata = await jettonMaster.getGetJettonData();
@@ -254,6 +271,7 @@ describe('JettonMaster', () => {
             to: jettonMaster.address,
             success: false,
             deploy: false,
+            op: 0x133704,
             exitCode: 132,
         });
     });
