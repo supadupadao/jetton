@@ -24,14 +24,21 @@ trait TEP74JettonMaster with TEP64Metadata {
     jetton_wallet_code: Cell;
     // System cell of jetton wallet contract (Tact feature)
     jetton_wallet_system: Cell;
+    // Jetton name field in metadata
+    jetton_name: String;
+    // Jetton description field in metadata
+    jetton_description: String;
+    // Jetton symbol field in metadata
+    jetton_symbol: String;
 
     get fun get_jetton_data(): JettonMasterData {
+        let jetton_content = self.jetton_master_metadata(self.jetton_name, self.jetton_description, self.jetton_symbol);
         return
             JettonMasterData{
                 total_supply: self.current_supply,
                 mintable: (self.max_supply - self.current_supply) > 0,
                 owner: self.owner,
-                jetton_content: self.jetton_master_metadata(),
+                jetton_content: jetton_content,
                 jetton_wallet_code: self.jetton_wallet_code
             };
     }

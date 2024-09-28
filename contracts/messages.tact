@@ -36,3 +36,17 @@ message(0x7bdd97de) JettonBurnInternal {
 message(0xd53276db) Excesses {
     query_id: Int as uint64;
 }
+message(0x133701) JettonInit {
+    query_id: Int as uint64;
+    jetton_name: String;
+    jetton_description: String;
+    jetton_symbol: String;
+    max_supply: Int as coins;
+}
+message(0x133702) JettonInitOk {
+    query_id: Int as uint64;
+}
+message(0x133703) JettonSetParameter {
+    key: String;
+    value: Slice;
+}

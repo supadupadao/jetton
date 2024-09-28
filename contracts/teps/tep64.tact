@@ -28,11 +28,11 @@ extends fun toCell(self: OnchainMetadata): Cell {
 
 trait TEP64Metadata {
     // Create jetton master onchain metadata
-    fun jetton_master_metadata(): Cell {
+    fun jetton_master_metadata(name: String, description: String, symbol: String): Cell {
         let metadata = newMetadata();
-        metadata.set("name", "CREW".asSlice());
-        metadata.set("description", "Governance token for SupaDupaDAO".asSlice());
-        metadata.set("symbol", "CREW".asSlice());
+        metadata.set("name", name.asSlice());
+        metadata.set("description", description.asSlice());
+        metadata.set("symbol", symbol.asSlice());
         return metadata.toCell();
     }
 }
