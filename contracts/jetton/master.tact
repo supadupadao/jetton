@@ -65,4 +65,33 @@ contract JettonMaster with TEP74JettonMaster, Deployable, Ownable {
         }
         nativeThrowUnless(ERROR_JETTON_UNKNOWN_PARAMETER, updated);
     }
+
+    receive(msg: JettonMint){
+        self.requireOwner();
+        nativeThrowIf(ERROR_MAX_SUPPLY_EXCEEDED, (self.current_supply + msg.amount) > self.max_supply);
+        let init = self.generate_wallet_state_init(msg.destination);
+        let to = contractAddress(init);
+        send(SendParameters{
+                to: to,
+                value: 0,
+                mode: SendRemainingValue,
+                code: init.code,
+                data: init.data,
+                bounce: true,
+                body: JettonTransferInternal{
+                    query_id: msg.query_id,
+                    amount: msg.amount,
+                    from: myAddress(),
+                    response_destination: msg.destination,
+                    forward_ton_amount: 0,
+                    forward_payload: emptySlice()
+                }.toCell()
+            }
+        );
+        self.current_supply += msg.amount;
+    }
+
+    bounced(msg: bounced<JettonTransferInternal>){
+        self.current_supply -= msg.amount;
+    }
 }

@@ -50,3 +50,8 @@ message(0x133703) JettonSetParameter {
     key: String;
     value: Slice;
 }
+message(0x133704) JettonMint {
+    query_id: Int as uint64;
+    destination: Address;
+    amount: Int as coins;
+}

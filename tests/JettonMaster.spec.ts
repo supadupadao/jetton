@@ -1,5 +1,5 @@
 import { Blockchain, SandboxContract, TreasuryContract } from '@ton/sandbox';
-import { Builder, Slice, toNano } from '@ton/core';
+import { Builder, toNano } from '@ton/core';
 import { JettonWallet } from '../build/Jetton/tact_JettonWallet';
 import { JettonMaster } from '../build/Jetton/tact_JettonMaster';
 import '@ton/test-utils';
@@ -17,16 +17,20 @@ const UPDATED_JETTON_MAX_SUPPLY = toNano("0");
 describe('JettonMaster', () => {
     let blockchain: Blockchain;
     let deployer: SandboxContract<TreasuryContract>;
+    let other: SandboxContract<TreasuryContract>;
     let jettonMaster: SandboxContract<JettonMaster>;
     let jettonWallet: SandboxContract<JettonWallet>;
+    let otherJettonWallet: SandboxContract<JettonWallet>;
 
     beforeEach(async () => {
         blockchain = await Blockchain.create();
 
         deployer = await blockchain.treasury('deployer');
+        other = await blockchain.treasury("other");
 
         jettonMaster = blockchain.openContract(await JettonMaster.fromInit(deployer.address));
         jettonWallet = blockchain.openContract(await JettonWallet.fromInit(jettonMaster.address, deployer.address));
+        otherJettonWallet = blockchain.openContract(await JettonWallet.fromInit(jettonMaster.address, other.address));
 
         const deployResult = await jettonMaster.send(
             deployer.getSender(),
@@ -42,7 +46,6 @@ describe('JettonMaster', () => {
                 max_supply: JETTON_MAX_SUPPLY,
             }
         );
-
         expect(deployResult.transactions).toHaveTransaction({
             from: deployer.address,
             to: jettonMaster.address,
@@ -54,6 +57,9 @@ describe('JettonMaster', () => {
     it('should correct build wallet address', async () => {
         let walletAddressData = await jettonMaster.getGetWalletAddress(deployer.address);
         expect(walletAddressData.toString()).toEqual(jettonWallet.address.toString());
+
+        let otherWalletAddressData = await jettonMaster.getGetWalletAddress(other.address);
+        expect(otherWalletAddressData.toString()).toEqual(otherJettonWallet.address.toString());
     });
 
     it('should return correct jetton metadata', async () => {
@@ -86,6 +92,31 @@ describe('JettonMaster', () => {
             to: jettonMaster.address,
             success: false,
             deploy: false,
+        });
+    });
+
+    it('should not double init', async () => {
+        const deployResult = await jettonMaster.send(
+            other.getSender(),
+            {
+                value: toNano("0.05"),
+            },
+            {
+                $$type: 'JettonInit',
+                query_id: 0n,
+                jetton_name: JETTON_NAME,
+                jetton_description: JETTON_DESCRIPTION,
+                jetton_symbol: JETTON_SYMBOL,
+                max_supply: JETTON_MAX_SUPPLY,
+            }
+        );
+
+        expect(deployResult.transactions).toHaveTransaction({
+            from: other.address,
+            to: jettonMaster.address,
+            success: false,
+            deploy: false,
+            exitCode: 132,
         });
     });
 
@@ -170,5 +201,60 @@ describe('JettonMaster', () => {
         let jettonMasterMetadata = await jettonMaster.getGetJettonData();
         expect(jettonMasterMetadata.mintable).toEqual(false);
         // TODO metadata
-    })
+    });
+
+    it('should mint tokens', async () => {
+        const mintResult = await jettonMaster.send(
+            deployer.getSender(),
+            {
+                value: toNano("0.05"),
+            },
+            {
+                $$type: 'JettonMint',
+                query_id: 0n,
+                amount: toNano("1337"),
+                destination: deployer.address,
+            }
+        );
+        expect(mintResult.transactions).toHaveTransaction({
+            from: deployer.address,
+            to: jettonMaster.address,
+            success: true,
+            deploy: false,
+        });
+        expect(mintResult.transactions).toHaveTransaction({
+            from: jettonMaster.address,
+            to: jettonWallet.address,
+            success: true,
+            deploy: true,
+        });
+
+        let jettonMasterMetadata = await jettonMaster.getGetJettonData();
+        expect(jettonMasterMetadata.total_supply).toEqual(toNano("1337"));
+
+        let jettonWalletData = await jettonWallet.getGetWalletData();
+        expect(jettonWalletData.balance).toEqual(toNano("1337"));
+    });
+
+    it('should not mint tokens not owner', async () => {
+        const mintResult = await jettonMaster.send(
+            other.getSender(),
+            {
+                value: toNano("0.05"),
+            },
+            {
+                $$type: 'JettonMint',
+                query_id: 0n,
+                amount: toNano("1337"),
+                destination: other.address,
+            }
+        );
+        expect(mintResult.transactions).toHaveTransaction({
+            from: other.address,
+            to: jettonMaster.address,
+            success: false,
+            deploy: false,
+            exitCode: 132,
+        });
+    });
 });
