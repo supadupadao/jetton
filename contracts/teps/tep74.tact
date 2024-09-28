@@ -43,10 +43,14 @@ trait TEP74JettonMaster with TEP64Metadata {
             };
     }
 
-    get fun get_wallet_address(owner: Address): Address {
+    fun generate_wallet_state_init(owner: Address): StateInit {
         let data = beginCell().storeRef(self.jetton_wallet_system).storeUint(0, 1).storeAddress(myAddress()
         ).storeAddress(owner).endCell();
-        let init = StateInit{code: self.jetton_wallet_code, data: data};
+        return StateInit{code: self.jetton_wallet_code, data: data};
+    }
+
+    get fun get_wallet_address(owner: Address): Address {
+        let init = self.generate_wallet_state_init(owner);
         return contractAddress(init);
     }
 }
@@ -61,26 +65,9 @@ trait TEP74JettonWallet with Ownable {
     const MIN_BALANCE: Int = ton("0.01");
     master: Address;
     owner: Address;
-    code: Cell;
+    jetton_wallet_code: Cell;
+    jetton_wallet_system: Cell;
     balance: Int;
-
-    fun packJettonWalletData(master: Address, owner: Address, code: Cell): Cell {
-        return beginCell().storeAddress(master).storeAddress(owner).storeRef(code).endCell();
-    }
-
-    fun calculateJettonWalletStateInit(master: Address, owner: Address, code: Cell): Cell {
-        return
-            beginCell().storeUint(0, 2).storeRef(code).storeRef(self.packJettonWalletData(master, owner, code)
-            ).storeUint(0, 1).endCell();
-    }
-
-    fun calculateJettonWalletAddress(stateInit: Cell): Slice {
-        return beginCell().storeUint(4, 3).storeInt(0, 8).storeUint(stateInit.hash(), 256).endCell().beginParse();
-    }
-
-    fun calculateUserJettonWalletAddress(master: Address, owner: Address, code: Cell): Slice {
-        return self.calculateJettonWalletAddress(self.calculateJettonWalletStateInit(master, owner, code));
-    }
 
     receive(msg: JettonTransfer){
         let ctx = context();
@@ -91,21 +78,15 @@ trait TEP74JettonWallet with Ownable {
             ((((ctx.readForwardFee() * 2) + (2 * self.GAS_CONSUMPTION)) + self.MIN_BALANCE) + msg.forward_ton_amount) <
                 ctx.value
         );
-        /*
-        master: Address;
-        owner: Address;
-        code: Cell;
-        balance: Int = 0;
-        */
-        let data = self.packJettonWalletData(self.master, msg.destination, self.code);
-        let to = self.calculateUserJettonWalletAddress(self.master, msg.destination, self.code);
+        let init = self.generate_wallet_state_init(msg.destination);
+        let to = contractAddress(init);
         send(SendParameters{
-                to: to.loadAddress(),
+                to: to,
                 value: 0,
                 mode: SendRemainingValue,
-                // bounce: true,
-                code: self.code,
-                data: data,
+                bounce: true,
+                code: init.code,
+                data: init.data,
                 body: JettonTransferInternal{
                     query_id: msg.query_id,
                     amount: msg.amount,
@@ -121,10 +102,7 @@ trait TEP74JettonWallet with Ownable {
     receive(msg: JettonTransferInternal){
         let ctx = context();
         if (ctx.sender != self.master) {
-            let init = StateInit{
-                code: self.code,
-                data: beginCell().storeAddress(self.master).storeAddress(msg.from).endCell()
-            };
+            let init = self.generate_wallet_state_init(msg.from);
             nativeThrowUnless(ERROR_CODE_INVALID_OWNER, contractAddress(init) == ctx.sender);
         }
         self.balance = self.balance + msg.amount;
@@ -192,6 +170,18 @@ trait TEP74JettonWallet with Ownable {
     }
 
     get fun get_wallet_data(): JettonWalletData {
-        return JettonWalletData{balance: self.balance, owner: self.owner, master: self.master, code: self.code};
+        return
+            JettonWalletData{
+                balance: self.balance,
+                owner: self.owner,
+                master: self.master,
+                code: self.jetton_wallet_code
+            };
+    }
+
+    fun generate_wallet_state_init(owner: Address): StateInit {
+        let data = beginCell().storeRef(self.jetton_wallet_system).storeUint(0, 1).storeAddress(self.master
+        ).storeAddress(owner).endCell();
+        return StateInit{code: self.jetton_wallet_code, data: data};
     }
 }
