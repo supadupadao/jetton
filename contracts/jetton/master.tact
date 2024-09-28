@@ -3,6 +3,7 @@ import "@stdlib/ownable";
 import "./wallet.tact";
 import "../teps/tep74.tact";
 import "../messages.tact";
+import "../errors.tact";
 
 @interface("org.ton.jetton.master")
 contract JettonMaster with TEP74JettonMaster, Deployable, Ownable {
@@ -16,11 +17,52 @@ contract JettonMaster with TEP74JettonMaster, Deployable, Ownable {
     jetton_wallet_code: Cell;
     // System cell of jetton wallet contract (Tact feature)
     jetton_wallet_system: Cell;
+    // Jetton name field in metadata
+    jetton_name: String = "Default name";
+    // Jetton description field in metadata
+    jetton_description: String = "Jetton default description";
+    // Jetton symbol field in metadata
+    jetton_symbol: String = "JETTON";
+    // Is token initialized (to avoid double init)
+    deployed: Bool = false;
     init(owner: Address){
         self.owner = owner;
         let init = initOf JettonWallet(myAddress(), myAddress());
         let data = init.data.beginParse();
         self.jetton_wallet_code = init.code;
         self.jetton_wallet_system = data.loadRef();
+    }
+
+    receive(msg: JettonInit){
+        self.requireOwner();
+        nativeThrowIf(ERROR_JETTON_INITIALIZED, self.deployed);
+        self.jetton_name = msg.jetton_name;
+        self.jetton_description = msg.jetton_description;
+        self.jetton_symbol = msg.jetton_symbol;
+        self.max_supply = msg.max_supply;
+        self.notify(JettonInitOk{query_id: msg.query_id}.toCell());
+        self.deployed = true;
+    }
+
+    receive(msg: JettonSetParameter){
+        self.requireOwner();
+        let updated = false;
+        if (msg.key == "jetton_name") {
+            updated = true;
+            self.jetton_name = msg.value.asString();
+        }
+        if (msg.key == "jetton_description") {
+            updated = true;
+            self.jetton_description = msg.value.asString();
+        }
+        if (msg.key == "jetton_symbol") {
+            updated = true;
+            self.jetton_symbol = msg.value.asString();
+        }
+        if (msg.key == "max_supply") {
+            updated = true;
+            self.max_supply = msg.value.loadCoins();
+        }
+        nativeThrowUnless(ERROR_JETTON_UNKNOWN_PARAMETER, updated);
     }
 }
