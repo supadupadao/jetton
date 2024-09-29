@@ -31,6 +31,21 @@ trait TEP74JettonMaster with TEP64Metadata {
     // Jetton symbol field in metadata
     jetton_symbol: String;
 
+    receive(msg: JettonBurnInternal){
+        let ctx = context();
+        let init = self.generate_wallet_state_init(msg.sender);
+        let wallet_address = contractAddress(init);
+        nativeThrowUnless(ERROR_CODE_INVALID_OWNER, ctx.sender == wallet_address);
+        send(SendParameters{
+                to: msg.response_destination,
+                value: 0,
+                mode: SendRemainingValue | SendIgnoreErrors,
+                bounce: false,
+                body: msg.toCell()
+            }
+        );
+    }
+
     get fun get_jetton_data(): JettonMasterData {
         let jetton_content = self.jetton_master_metadata(self.jetton_name, self.jetton_description, self.jetton_symbol);
         return
