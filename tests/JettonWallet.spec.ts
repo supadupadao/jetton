@@ -68,7 +68,7 @@ describe('JettonMaster', () => {
                 destination: other.address,
                 custom_payload: null,
                 forward_payload: new Builder().asSlice(),
-                forward_ton_amount: 0n,
+                forward_ton_amount: 1n,
                 response_destination: other.address,
             }
         );
@@ -85,6 +85,17 @@ describe('JettonMaster', () => {
             deploy: true,
             success: true,
             op: 0x178d4519,
+        });
+        expect(transferResult.transactions).toHaveTransaction({
+            from: otherJettonWallet.address,
+            to: other.address,
+            op: 0x7362d09c,
+        });
+        expect(transferResult.transactions).toHaveTransaction({
+            from: otherJettonWallet.address,
+            to: other.address,
+            success: true,
+            op: 0xd53276db,
         });
 
         let jettonWalletData = await jettonWallet.getGetWalletData();
@@ -147,6 +158,100 @@ describe('JettonMaster', () => {
             deploy: false,
             success: false,
             op: 0x0f8a7ea5,
+            exitCode: 6901,
+        });
+
+        let jettonWalletData = await jettonWallet.getGetWalletData();
+        expect(jettonWalletData.balance).toEqual(toNano("1337"));
+    });
+
+    it('should burn tokens', async () => {
+        const transferResult = await jettonWallet.send(
+            deployer.getSender(),
+            {
+                value: toNano("0.05"),
+            },
+            {
+                $$type: 'JettonBurn',
+                query_id: 0n,
+                amount: toNano("1337"),
+                response_destination: deployer.address,
+                custom_payload: null,
+            }
+        );
+        expect(transferResult.transactions).toHaveTransaction({
+            from: deployer.address,
+            to: jettonWallet.address,
+            deploy: false,
+            success: true,
+            op: 0x595f07bc,
+        });
+        expect(transferResult.transactions).toHaveTransaction({
+            from: jettonWallet.address,
+            to: jettonMaster.address,
+            deploy: false,
+            success: true,
+            op: 0x7bdd97de,
+        });
+        expect(transferResult.transactions).toHaveTransaction({
+            from: jettonMaster.address,
+            to: deployer.address,
+            deploy: false,
+            success: true,
+            op: 0x7bdd97de,
+        });
+
+        let jettonWalletData = await jettonWallet.getGetWalletData();
+        expect(jettonWalletData.balance).toEqual(toNano("0"));
+    });
+
+    it('should not burn tokens not owner', async () => {
+        const transferResult = await jettonWallet.send(
+            other.getSender(),
+            {
+                value: toNano("0.05"),
+            },
+            {
+                $$type: 'JettonBurn',
+                query_id: 0n,
+                amount: toNano("228"),
+                response_destination: deployer.address,
+                custom_payload: null,
+            }
+        );
+        expect(transferResult.transactions).toHaveTransaction({
+            from: other.address,
+            to: jettonWallet.address,
+            deploy: false,
+            success: false,
+            op: 0x595f07bc,
+            exitCode: 132,
+        });
+
+        let jettonWalletData = await jettonWallet.getGetWalletData();
+        expect(jettonWalletData.balance).toEqual(toNano("1337"));
+    });
+
+    it('should not burn tokens not enough amount', async () => {
+        const transferResult = await jettonWallet.send(
+            deployer.getSender(),
+            {
+                value: toNano("0.05"),
+            },
+            {
+                $$type: 'JettonBurn',
+                query_id: 0n,
+                amount: toNano("100500"),
+                response_destination: deployer.address,
+                custom_payload: null,
+            }
+        );
+        expect(transferResult.transactions).toHaveTransaction({
+            from: deployer.address,
+            to: jettonWallet.address,
+            deploy: false,
+            success: false,
+            op: 0x595f07bc,
             exitCode: 6901,
         });
 
