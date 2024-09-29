@@ -95,4 +95,9 @@ contract JettonMaster with TEP74JettonMaster, TEP89JettonDiscoverable, Deployabl
     bounced(msg: bounced<JettonTransferInternal>){
         self.current_supply -= msg.amount;
     }
+
+    // Returns wallet system cell (Tact lang feature)
+    get fun get_tact_system_cell(): Cell {
+        return self.jetton_wallet_system;
+    }
 }
