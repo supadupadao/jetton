@@ -2,11 +2,12 @@ import "@stdlib/deploy";
 import "@stdlib/ownable";
 import "./wallet.tact";
 import "../teps/tep74.tact";
+import "../teps/tep89.tact";
 import "../messages.tact";
 import "../errors.tact";
 
 @interface("org.ton.jetton.master")
-contract JettonMaster with TEP74JettonMaster, Deployable, Ownable {
+contract JettonMaster with TEP74JettonMaster, TEP89JettonDiscoverable, Deployable, Ownable {
     // Maximum tokens can be minted
     max_supply: Int = ton("21000000");
     // Current tokens minted
@@ -69,7 +70,7 @@ contract JettonMaster with TEP74JettonMaster, Deployable, Ownable {
     receive(msg: JettonMint){
         self.requireOwner();
         nativeThrowIf(ERROR_MAX_SUPPLY_EXCEEDED, (self.current_supply + msg.amount) > self.max_supply);
-        let init = self.generate_wallet_state_init(msg.destination);
+        let init = self.discover_wallet_state_init(myAddress(), msg.destination);
         let to = contractAddress(init);
         send(SendParameters{
                 to: to,

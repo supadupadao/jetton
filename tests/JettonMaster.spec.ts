@@ -1,5 +1,5 @@
 import { Blockchain, SandboxContract, TreasuryContract } from '@ton/sandbox';
-import { Builder, toNano } from '@ton/core';
+import { beginCell, Builder, toNano } from '@ton/core';
 import { JettonWallet } from '../build/Jetton/tact_JettonWallet';
 import { JettonMaster } from '../build/Jetton/tact_JettonMaster';
 import '@ton/test-utils';
@@ -273,6 +273,76 @@ describe('JettonMaster', () => {
             deploy: false,
             op: 0x133704,
             exitCode: 132,
+        });
+    });
+
+    it('should discover address', async () => {
+        let discoverResult = await jettonMaster.send(
+            deployer.getSender(),
+            {
+                value: toNano("0.05"),
+            },
+            {
+                $$type: 'ProvideWalletAddress',
+                query_id: 0n,
+                owner_address: other.address,
+                include_address: false,
+            }
+        );
+        expect(discoverResult.transactions).toHaveTransaction({
+            from: deployer.address,
+            to: jettonMaster.address,
+            success: true,
+            deploy: false,
+            op: 0x2c76b973,
+        });
+        expect(discoverResult.transactions).toHaveTransaction({
+            from: jettonMaster.address,
+            to: deployer.address,
+            success: true,
+            deploy: false,
+            op: 0xd1735400,
+            body: beginCell()
+                .storeUint(0xd1735400, 32)
+                .storeUint(0, 64)
+                .storeAddress(otherJettonWallet.address)
+                .storeAddress(null)
+                .endCell()
+        });
+    });
+
+    it('should discover include address', async () => {
+        let discoverResult = await jettonMaster.send(
+            deployer.getSender(),
+            {
+                value: toNano("0.05"),
+            },
+            {
+                $$type: 'ProvideWalletAddress',
+                query_id: 0n,
+                owner_address: other.address,
+                include_address: true,
+            }
+        );
+        expect(discoverResult.transactions).toHaveTransaction({
+            from: deployer.address,
+            to: jettonMaster.address,
+            success: true,
+            deploy: false,
+            op: 0x2c76b973,
+        });
+        expect(discoverResult.transactions).toHaveTransaction({
+            from: jettonMaster.address,
+            to: deployer.address,
+            success: true,
+            deploy: false,
+            op: 0xd1735400,
+            body: beginCell()
+                .storeUint(0xd1735400, 32)
+                .storeUint(0, 64)
+                .storeAddress(otherJettonWallet.address)
+                .storeAddress(other.address)
+                .endCell()
         });
     });
 });
