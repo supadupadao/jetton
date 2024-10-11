@@ -13,8 +13,8 @@ fun newMetadata(): OnchainMetadata {
 
 // Add new key/value pair to metadata
 
-extends fun set(self: OnchainMetadata, key: String, value: Slice) {
-    self.inner.set(sha256(key), beginCell().storeUint(0, 8).storeSlice(value).endCell());
+mutates extends fun set(self: OnchainMetadata, key: String, value: Slice) {
+    self.inner.set(sha256(key), beginCell().storeSlice(value).endCell());
 }
 
 // Build `Cell` from metadata that corresponds with standard
@@ -31,6 +31,8 @@ trait TEP64Metadata {
     fun jetton_master_metadata(name: String, description: String, symbol: String): Cell {
         let metadata = newMetadata();
         metadata.set("name", name.asSlice());
+        let d = beginTailString();
+        d.append(description);
         metadata.set("description", description.asSlice());
         metadata.set("symbol", symbol.asSlice());
         return metadata.toCell();

@@ -1,5 +1,5 @@
 import { Blockchain, SandboxContract, TreasuryContract } from '@ton/sandbox';
-import { beginCell, Builder, Cell, toNano } from '@ton/core';
+import { beginCell, Builder, Cell, Dictionary, toNano } from '@ton/core';
 import { JettonWallet } from '../build/Jetton/tact_JettonWallet';
 import { JettonMaster } from '../build/Jetton/tact_JettonMaster';
 import '@ton/test-utils';
@@ -64,6 +64,64 @@ describe('JettonMaster', () => {
         });
     });
 
+    it('should handle big strings', async () => {
+        const LONG_JETTON_NAME = JETTON_NAME.repeat(100);
+        const LONG_JETTON_DESCRIPTION = JETTON_DESCRIPTION.repeat(100);
+        const LONG_JETTON_SYMBOL = JETTON_SYMBOL.repeat(200);
+
+        expect(LONG_JETTON_NAME.length).toBeGreaterThan(1024);
+        expect(LONG_JETTON_DESCRIPTION.length).toBeGreaterThan(1024);
+        expect(LONG_JETTON_SYMBOL.length).toBeGreaterThan(1024);
+
+        const otherJettonMaster = blockchain.openContract(await JettonMaster.fromInit(other.address));
+        const deployResult = await otherJettonMaster.send(
+            other.getSender(),
+            {
+                value: toNano("0.05"),
+            },
+            {
+                $$type: 'JettonInit',
+                query_id: 0n,
+                jetton_name: LONG_JETTON_NAME,
+                jetton_description: LONG_JETTON_DESCRIPTION,
+                jetton_symbol: LONG_JETTON_SYMBOL,
+                max_supply: JETTON_MAX_SUPPLY,
+            }
+        );
+        expect(deployResult.transactions).toHaveTransaction({
+            from: other.address,
+            to: otherJettonMaster.address,
+            success: true,
+            deploy: true,
+            op: 0x133701,
+        });
+        expect(deployResult.transactions).toHaveTransaction({
+            from: otherJettonMaster.address,
+            to: other.address,
+            success: true,
+            deploy: false,
+            op: 0x133702,
+        });
+        let metadataResult = await otherJettonMaster.getGetJettonData();
+        let jettonContent = metadataResult.jetton_content.beginParse();
+        let metadataDict = jettonContent.loadDict(Dictionary.Keys.BigUint(256), Dictionary.Values.Cell());
+        expect(
+            metadataDict.get(59089242681608890680090686026688704441792375738894456860693970539822503415433n)
+        ).toEqualCell(
+            beginCell().storeStringTail(LONG_JETTON_NAME).endCell()
+        );
+        expect(
+            metadataDict.get(82961397245523513629401799123410942652413991882008909918554405086738284660097n)
+        ).toEqualCell(
+            beginCell().storeStringTail(LONG_JETTON_SYMBOL).endCell()
+        );
+        expect(
+            metadataDict.get(90922719342317012409671596374183159143637506542604000676488204638996496437508n)
+        ).toEqualCell(
+            beginCell().storeStringTail(LONG_JETTON_DESCRIPTION).endCell()
+        );
+    });
+
     it('should correct build wallet address', async () => {
         let walletAddressData = await jettonMaster.getGetWalletAddress(deployer.address);
         expect(walletAddressData.toString()).toEqual(jettonWallet.address.toString());
@@ -77,7 +135,28 @@ describe('JettonMaster', () => {
         expect(jettonMasterMetadata.mintable).toEqual(true);
         expect(jettonMasterMetadata.owner.toString()).toEqual(deployer.address.toString());
         expect(jettonMasterMetadata.total_supply).toEqual(0n);
-        expect(jettonMasterMetadata.jetton_content); // TODO parse metadata cell
+
+        // Parse jetton metadata
+        let jettonContent = jettonMasterMetadata.jetton_content.beginParse();
+
+        let metadataDict = jettonContent.loadDict(Dictionary.Keys.BigUint(256), Dictionary.Values.Cell());
+
+        expect(
+            metadataDict.get(59089242681608890680090686026688704441792375738894456860693970539822503415433n)
+        ).toEqualCell(
+            beginCell().storeStringTail(JETTON_NAME).endCell()
+        );
+        expect(
+            metadataDict.get(82961397245523513629401799123410942652413991882008909918554405086738284660097n)
+        ).toEqualCell(
+            beginCell().storeStringTail(JETTON_SYMBOL).endCell()
+        );
+        expect(
+            metadataDict.get(90922719342317012409671596374183159143637506542604000676488204638996496437508n)
+        ).toEqualCell(
+            beginCell().storeStringTail(JETTON_DESCRIPTION).endCell()
+        );
+
         expect(jettonMasterMetadata.jetton_wallet_code); // TODO validate wallet code
     });
 
