@@ -1,4 +1,4 @@
-import { Builder, toNano } from '@ton/core';
+import { beginCell, Builder, toNano } from '@ton/core';
 import { JettonMaster } from '../wrappers/JettonMaster';
 import { NetworkProvider } from '@ton/blueprint';
 
@@ -26,9 +26,9 @@ export async function run(provider: NetworkProvider) {
         {
             $$type: 'JettonInit',
             query_id: 0n,
-            jetton_name: new Builder().storeStringRefTail('Jetton name').asSlice(),
-            jetton_description: new Builder().storeStringRefTail('Long' + ' long '.repeat(100) + 'description').asSlice(),
-            jetton_symbol: new Builder().storeStringRefTail('SMBL').asSlice(),
+            jetton_name: beginCell().storeStringRefTail('Jetton name').asSlice(),
+            jetton_description: beginCell().storeStringRefTail('Long' + ' long '.repeat(100) + 'description').asSlice(),
+            jetton_symbol: beginCell().storeStringRefTail('SMBL').asSlice(),
             max_supply: toNano(1337),
         }
     );

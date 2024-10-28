@@ -1,5 +1,5 @@
 import { Blockchain, SandboxContract, TreasuryContract } from '@ton/sandbox';
-import { Builder, toNano } from '@ton/core';
+import { beginCell, Builder, toNano } from '@ton/core';
 import { JettonWallet } from '../build/Jetton/tact_JettonWallet';
 import { JettonMaster } from '../build/Jetton/tact_JettonMaster';
 import '@ton/test-utils';
@@ -35,9 +35,9 @@ describe('JettonMaster', () => {
             {
                 $$type: 'JettonInit',
                 query_id: 0n,
-                jetton_name: new Builder().storeStringTail(JETTON_NAME).asSlice(),
-                jetton_description: new Builder().storeStringTail(JETTON_DESCRIPTION).asSlice(),
-                jetton_symbol: new Builder().storeStringTail(JETTON_SYMBOL).asSlice(),
+                jetton_name: beginCell().storeStringTail(JETTON_NAME).asSlice(),
+                jetton_description: beginCell().storeStringTail(JETTON_DESCRIPTION).asSlice(),
+                jetton_symbol: beginCell().storeStringTail(JETTON_SYMBOL).asSlice(),
                 max_supply: JETTON_MAX_SUPPLY,
             }
         );
@@ -67,7 +67,7 @@ describe('JettonMaster', () => {
                 amount: toNano("228"),
                 destination: other.address,
                 custom_payload: null,
-                forward_payload: new Builder().asSlice(),
+                forward_payload: beginCell().asSlice(),
                 forward_ton_amount: 1n,
                 response_destination: other.address,
             }
@@ -117,7 +117,7 @@ describe('JettonMaster', () => {
                 amount: toNano("228"),
                 destination: other.address,
                 custom_payload: null,
-                forward_payload: new Builder().asSlice(),
+                forward_payload: beginCell().asSlice(),
                 forward_ton_amount: 0n,
                 response_destination: other.address,
             }
@@ -147,7 +147,7 @@ describe('JettonMaster', () => {
                 amount: toNano("100500"),
                 destination: other.address,
                 custom_payload: null,
-                forward_payload: new Builder().asSlice(),
+                forward_payload: beginCell().asSlice(),
                 forward_ton_amount: 0n,
                 response_destination: other.address,
             }
