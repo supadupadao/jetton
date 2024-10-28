@@ -18,18 +18,19 @@ contract JettonMaster with TEP74JettonMaster, TEP89JettonDiscoverable, Deployabl
     jetton_wallet_code: Cell;
     // System cell of jetton wallet contract (Tact feature)
     jetton_wallet_system: Cell;
-    // Jetton name field in metadata
-    jetton_name: String = "Default name";
-    // Jetton description field in metadata
-    jetton_description: String = "Jetton default description";
-    // Jetton symbol field in metadata
-    jetton_symbol: String = "JETTON";
+    // Jetton metadata
+    metadata: OnchainMetadata;
     // Is token initialized (to avoid double init)
     deployed: Bool = false;
     init(owner: Address){
         self.owner = owner;
         let init = initOf JettonWallet(myAddress(), myAddress());
         let data = init.data.beginParse();
+        let metadata = newMetadata();
+        metadata.set("name", "Default name..".asSlice());
+        metadata.set("description", "Jetton default description".asSlice());
+        metadata.set("symbol", "JETTON".asSlice());
+        self.metadata = metadata;
         self.jetton_wallet_code = init.code;
         self.jetton_wallet_system = data.loadRef();
     }
@@ -37,9 +38,9 @@ contract JettonMaster with TEP74JettonMaster, TEP89JettonDiscoverable, Deployabl
     receive(msg: JettonInit){
         self.requireOwner();
         nativeThrowIf(ERROR_JETTON_INITIALIZED, self.deployed);
-        self.jetton_name = msg.jetton_name;
-        self.jetton_description = msg.jetton_description;
-        self.jetton_symbol = msg.jetton_symbol;
+        self.metadata.set("name", msg.jetton_name);
+        self.metadata.set("description", msg.jetton_description);
+        self.metadata.set("symbol", msg.jetton_symbol);
         self.max_supply = msg.max_supply;
         self.notify(JettonInitOk{query_id: msg.query_id}.toCell());
         self.deployed = true;
@@ -47,24 +48,11 @@ contract JettonMaster with TEP74JettonMaster, TEP89JettonDiscoverable, Deployabl
 
     receive(msg: JettonSetParameter){
         self.requireOwner();
-        let updated = false;
-        if (msg.key == "jetton_name") {
-            updated = true;
-            self.jetton_name = msg.value.asString();
-        }
-        if (msg.key == "jetton_description") {
-            updated = true;
-            self.jetton_description = msg.value.asString();
-        }
-        if (msg.key == "jetton_symbol") {
-            updated = true;
-            self.jetton_symbol = msg.value.asString();
-        }
         if (msg.key == "max_supply") {
-            updated = true;
             self.max_supply = msg.value.loadCoins();
+            return;
         }
-        nativeThrowUnless(ERROR_JETTON_UNKNOWN_PARAMETER, updated);
+        self.metadata.set(msg.key, msg.value);
     }
 
     receive(msg: JettonMint){

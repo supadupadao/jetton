@@ -35,9 +35,9 @@ describe('JettonMaster', () => {
             {
                 $$type: 'JettonInit',
                 query_id: 0n,
-                jetton_name: JETTON_NAME,
-                jetton_description: JETTON_DESCRIPTION,
-                jetton_symbol: JETTON_SYMBOL,
+                jetton_name: new Builder().storeStringTail(JETTON_NAME).asSlice(),
+                jetton_description: new Builder().storeStringTail(JETTON_DESCRIPTION).asSlice(),
+                jetton_symbol: new Builder().storeStringTail(JETTON_SYMBOL).asSlice(),
                 max_supply: JETTON_MAX_SUPPLY,
             }
         );
