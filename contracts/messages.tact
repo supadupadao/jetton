@@ -48,9 +48,9 @@ message(0xd1735400) TakeWalletAddress {
 }
 message(0x133701) JettonInit {
     query_id: Int as uint64;
-    jetton_name: String;
-    jetton_description: String;
-    jetton_symbol: String;
+    jetton_name: Slice;
+    jetton_description: Slice;
+    jetton_symbol: Slice;
     max_supply: Int as coins;
 }
 message(0x133702) JettonInitOk {

@@ -1,9 +1,9 @@
-import { toNano } from '@ton/core';
+import { Builder, toNano } from '@ton/core';
 import { JettonMaster } from '../wrappers/JettonMaster';
 import { NetworkProvider } from '@ton/blueprint';
 
 export async function run(provider: NetworkProvider) {
-    const jettonMaster = provider.open(await JettonMaster.fromInit());
+    const jettonMaster = provider.open(await JettonMaster.fromInit(provider.sender().address!!));
 
     await jettonMaster.send(
         provider.sender(),
@@ -16,7 +16,32 @@ export async function run(provider: NetworkProvider) {
         }
     );
 
-    await provider.waitForDeploy(jettonMaster.address);
+    await provider.waitForDeploy(jettonMaster.address, 100, 5000);
 
-    // run methods on `jettonMaster`
+    await jettonMaster.send(
+        provider.sender(),
+        {
+            value: toNano('0.05'),
+        },
+        {
+            $$type: 'JettonInit',
+            query_id: 0n,
+            jetton_name: new Builder().storeStringRefTail('Jetton name').asSlice(),
+            jetton_description: new Builder().storeStringRefTail('Long' + ' long '.repeat(100) + 'description').asSlice(),
+            jetton_symbol: new Builder().storeStringRefTail('SMBL').asSlice(),
+            max_supply: toNano(1337),
+        }
+    );
+    await jettonMaster.send(
+        provider.sender(),
+        {
+            value: toNano('0.05'),
+        },
+        {
+            $$type: 'JettonMint',
+            query_id: 0n,
+            destination: provider.sender().address!!,
+            amount: toNano("10"),
+        }
+    );
 }
