@@ -16,7 +16,7 @@ export async function run(provider: NetworkProvider) {
         }
     );
 
-    await provider.waitForDeploy(jettonMaster.address);
+    await provider.waitForDeploy(jettonMaster.address, 100, 5000);
 
     await jettonMaster.send(
         provider.sender(),
@@ -26,9 +26,9 @@ export async function run(provider: NetworkProvider) {
         {
             $$type: 'JettonInit',
             query_id: 0n,
-            jetton_name: new Builder().storeStringTail('Jetton name').asSlice(),
-            jetton_description: new Builder().storeStringTail('Long' + ' long '.repeat(1) + 'description').asSlice(),
-            jetton_symbol: new Builder().storeStringTail('SMBL').asSlice(),
+            jetton_name: new Builder().storeStringRefTail('Jetton name').asSlice(),
+            jetton_description: new Builder().storeStringRefTail('Long' + ' long '.repeat(100) + 'description').asSlice(),
+            jetton_symbol: new Builder().storeStringRefTail('SMBL').asSlice(),
             max_supply: toNano(1337),
         }
     );
