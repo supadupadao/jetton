@@ -42,9 +42,9 @@ describe('JettonMaster', () => {
             {
                 $$type: 'JettonInit',
                 query_id: 0n,
-                jetton_name: new Builder().storeStringTail(JETTON_NAME).asSlice(),
-                jetton_description: new Builder().storeStringTail(JETTON_DESCRIPTION).asSlice(),
-                jetton_symbol: new Builder().storeStringTail(JETTON_SYMBOL).asSlice(),
+                jetton_name: beginCell().storeStringTail(JETTON_NAME).asSlice(),
+                jetton_description: beginCell().storeStringTail(JETTON_DESCRIPTION).asSlice(),
+                jetton_symbol: beginCell().storeStringTail(JETTON_SYMBOL).asSlice(),
                 max_supply: JETTON_MAX_SUPPLY,
             }
         );
@@ -178,9 +178,9 @@ describe('JettonMaster', () => {
             {
                 $$type: 'JettonInit',
                 query_id: 0n,
-                jetton_name: new Builder().storeStringTail(JETTON_NAME).asSlice(),
-                jetton_description: new Builder().storeStringTail(JETTON_DESCRIPTION).asSlice(),
-                jetton_symbol: new Builder().storeStringTail(JETTON_SYMBOL).asSlice(),
+                jetton_name: beginCell().storeStringTail(JETTON_NAME).asSlice(),
+                jetton_description: beginCell().storeStringTail(JETTON_DESCRIPTION).asSlice(),
+                jetton_symbol: beginCell().storeStringTail(JETTON_SYMBOL).asSlice(),
                 max_supply: JETTON_MAX_SUPPLY,
             }
         );
@@ -204,9 +204,9 @@ describe('JettonMaster', () => {
             {
                 $$type: 'JettonInit',
                 query_id: 0n,
-                jetton_name: new Builder().storeStringTail(JETTON_NAME).asSlice(),
-                jetton_description: new Builder().storeStringTail(JETTON_DESCRIPTION).asSlice(),
-                jetton_symbol: new Builder().storeStringTail(JETTON_SYMBOL).asSlice(),
+                jetton_name: beginCell().storeStringTail(JETTON_NAME).asSlice(),
+                jetton_description: beginCell().storeStringTail(JETTON_DESCRIPTION).asSlice(),
+                jetton_symbol: beginCell().storeStringTail(JETTON_SYMBOL).asSlice(),
                 max_supply: JETTON_MAX_SUPPLY,
             }
         );
@@ -230,8 +230,8 @@ describe('JettonMaster', () => {
             },
             {
                 $$type: 'JettonSetParameter',
-                key: "jetton_name",
-                value: new Builder().storeStringTail(UPDATED_JETTON_NAME).asSlice()
+                key: "name",
+                value: beginCell().storeStringTail(UPDATED_JETTON_NAME).asSlice()
             }
         );
         expect(nameUpdateResult.transactions).toHaveTransaction({
@@ -250,8 +250,8 @@ describe('JettonMaster', () => {
             },
             {
                 $$type: 'JettonSetParameter',
-                key: "jetton_description",
-                value: new Builder().storeStringTail(UPDATED_JETTON_DESCRIPTION).asSlice()
+                key: "description",
+                value: beginCell().storeStringTail(UPDATED_JETTON_DESCRIPTION).asSlice()
             }
         );
         expect(descriptionUpdateResult.transactions).toHaveTransaction({
@@ -270,8 +270,8 @@ describe('JettonMaster', () => {
             },
             {
                 $$type: 'JettonSetParameter',
-                key: "jetton_symbol",
-                value: new Builder().storeStringTail(UPDATED_JETTON_SYMBOL).asSlice()
+                key: "symbol",
+                value: beginCell().storeStringTail(UPDATED_JETTON_SYMBOL).asSlice()
             }
         );
         expect(symbolUpdateResult.transactions).toHaveTransaction({
@@ -291,7 +291,7 @@ describe('JettonMaster', () => {
             {
                 $$type: 'JettonSetParameter',
                 key: "max_supply",
-                value: new Builder().storeCoins(UPDATED_JETTON_MAX_SUPPLY).asSlice()
+                value: beginCell().storeCoins(UPDATED_JETTON_MAX_SUPPLY).asSlice()
             }
         );
         expect(maxSupplyUpdateResult.transactions).toHaveTransaction({
@@ -305,6 +305,24 @@ describe('JettonMaster', () => {
         // Checks
         let jettonMasterMetadata = await jettonMaster.getGetJettonData();
         expect(jettonMasterMetadata.mintable).toEqual(false);
+        let jettonContent = jettonMasterMetadata.jetton_content.beginParse();
+        expect(jettonContent.loadUint(8)).toEqual(0);
+        let metadataDict = jettonContent.loadDict(Dictionary.Keys.BigUint(256), Dictionary.Values.Cell());
+        expect(
+            metadataDict.get(59089242681608890680090686026688704441792375738894456860693970539822503415433n)
+        ).toEqualCell(
+            beginCell().storeUint(0, 8).storeStringTail(UPDATED_JETTON_NAME).endCell()
+        );
+        expect(
+            metadataDict.get(82961397245523513629401799123410942652413991882008909918554405086738284660097n)
+        ).toEqualCell(
+            beginCell().storeUint(0, 8).storeStringTail(UPDATED_JETTON_SYMBOL).endCell()
+        );
+        expect(
+            metadataDict.get(90922719342317012409671596374183159143637506542604000676488204638996496437508n)
+        ).toEqualCell(
+            beginCell().storeUint(0, 8).storeStringTail(UPDATED_JETTON_DESCRIPTION).endCell()
+        );
         // TODO metadata
     });
 
