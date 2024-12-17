@@ -10,3 +10,9 @@ const ERROR_JETTON_INITIALIZED: Int = 6903;
 const ERROR_MAX_SUPPLY_EXCEEDED: Int = 6904;
 // Invalid transfer amount (e.g., zero tokens)
 const ERROR_CODE_INVALID_AMOUNT: Int = 6905;
+// New max supply is too small (must be larger than the current supply and non-zero)
+const ERROR_MAX_SUPPLY_TOO_SMALL: Int = 6906; 
+
+
+
+
