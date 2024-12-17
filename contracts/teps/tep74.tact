@@ -29,6 +29,8 @@ trait TEP74JettonMaster with TEP64Metadata, DiscoverWalletAddress {
     metadata: OnchainMetadata;
 
     receive(msg: JettonBurnInternal){
+        nativeThrowUnless(ERROR_CODE_INVALID_AMOUNT, msg.amount > 0); // Reject burn with amount <= 0
+
         let ctx = context();
         let init = self.discover_wallet_state_init(myAddress(), msg.sender);
         let wallet_address = contractAddress(init);
