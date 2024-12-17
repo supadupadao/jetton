@@ -75,6 +75,8 @@ trait TEP74JettonWallet with Ownable, DiscoverWalletAddress {
     balance: Int;
 
     receive(msg: JettonTransfer){
+        nativeThrowUnless(ERROR_CODE_INVALID_AMOUNT, msg.amount > 0); // Reject transfers with amount <= 0
+
         let ctx = context();
         self.requireOwner();
         self.balance = self.balance - msg.amount;
