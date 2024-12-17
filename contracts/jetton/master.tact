@@ -88,6 +88,7 @@ contract JettonMaster with TEP74JettonMaster, TEP89JettonDiscoverable, Deployabl
     }
 
     bounced(msg: bounced<JettonTransferInternal>){
+        nativeThrowUnless(ERROR_CODE_INVALID_AMOUNT, msg.amount > 0); // Is this needed? Keeping it for consistency
         self.current_supply -= msg.amount;
     }
 
