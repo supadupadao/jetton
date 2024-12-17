@@ -2,9 +2,11 @@ import { Blockchain, SandboxContract, TreasuryContract } from '@ton/sandbox';
 import { beginCell, Builder, Cell, Dictionary, toNano } from '@ton/core';
 import { JettonWallet } from '../build/Jetton/tact_JettonWallet';
 import { JettonMaster } from '../build/Jetton/tact_JettonMaster';
+import { OP_CODES } from './constants/opCodes';
+
 import '@ton/test-utils';
 
-const SYSTEM_CELL = Cell.fromBase64('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');
+const SYSTEM_CELL = Cell.fromBase64('te6cckECIgEAB90AAQHAAQEFoB1rAgEU/wD0pBP0vPLICwMCAWIEFwN60AHQ0wMBcbCjAfpAASDXSYEBC7ry4Igg1wsKIIEE/7ry0ImDCbry4IhUUFMDbwT4YQL4Yts8VRTbPPLgghwFFgP2AY5XgCDXIXAh10nCH5UwINcLH94gghAXjUUZuo4YMNMfAYIQF41FGbry4IHTP/oAWWwSMaB/4IIQe92X3rqOF9MfAYIQe92X3rry4IHTP/oAWWwSMaB/4DB/4HAh10nCH5UwINcLH94gghAPin6luo8IMNs8bBfbPH/gBgcKAMbTHwGCEA+KfqW68uCB0z/6APpAASDXSYEBC7ry4Igg1wsKIIEE/7ry0ImDCbry4IgB+kABINdJgQELuvLgiCDXCwoggQT/uvLQiYMJuvLgiAHSAAGR1JJtAeL6AFFmFhUUQzAEkjKBGvklwgDy9PhBbyQQThA9TLrbPCihgRr1IcL/8vRUHcuBGvYM2zyqAIIJMS0AoIIImJaAoC2gUAq5GPL0UgZeNBA6SRjbPFwREg0IAtZwWchwAcsBcwHLAXABywASzMzJ+QDIcgHLAXABywASygfL/8nQINdJgQELuvLgiCDXCwoggQT/uvLQiYMJuvLgiFCYcIBAfylPEwEREAEOyFVQ2zzJEGcQWRBKEDtBgBA2EDUQNFnbPDBDRAkUAKqCEBeNRRlQB8sfFcs/UAP6AgEg10mBAQu68uCIINcLCiCBBP+68tCJgwm68uCIzxYBINdJgQELuvLgiCDXCwoggQT/uvLQiYMJuvLgiM8WAfoCAc8WA8AgghAXjUUZuo8IMNs8bBbbPH/gghBZXwe8uo7B0x8BghBZXwe8uvLggdM/+gD6QAEg10mBAQu68uCIINcLCiCBBP+68tCJgwm68uCIAdIAAZHUkm0B4lUwbBTbPH/gMHALDBAAstMfAYIQF41FGbry4IHTP/oA+kABINdJgQELuvLgiCDXCwoggQT/uvLQiYMJuvLgiAH6QAEg10mBAQu68uCIINcLCiCBBP+68tCJgwm68uCIAfoAUVUVFEMwAvKBGvklwgDy9PhBbyRT4scFs47ZLgUQThA9TL8o2zxwWchwAcsBcwHLAXABywASzMzJ+QDIcgHLAXABywASygfL/8nQINdJgQELuvLgiCDXCwoggQT/uvLQiYMJuvLgiFLQxwXy4IQQThA9TLreUaiggRr1IcL/8vQhDQ4AkshSQMxwAcsAWCDXSYEBC7ry4Igg1wsKIIEE/7ry0ImDCbry4IjPFgEg10mBAQu68uCIINcLCiCBBP+68tCJgwm68uCIzxbJUjAD9oIImJaAoYIImJaAIPgnbxAlobYIoaEmwgCPVSahUEtDMNs8GKFxcChIE1B0yFUwghBzYtCcUAXLHxPLPwH6AgEg10mBAQu68uCIINcLCiCBBP+68tCJgwm68uCIzxYBzxbJKkYUUFUUQzBtbds8MAOWEHtQiV8I4iHCABIUDwFGjp1wcgTIAYIQ1TJ221jLH8s/yRBFQzAVEDRtbds8MJJsMeIUA3owgRr5IsIA8vT4QW8kEEsQOkmH2zyBGvZUG6mCCTEtAArbPBegF7wX8vRRYaGBGvUhwv/y9HB/VBQ3gEALERITABL4QlJAxwXy4IQAZGwx+kABINdJgQELuvLgiCDXCwoggQT/uvLQiYMJuvLgiDD6ADFx1yH6ADH6ADCnA6sAAcbIVTCCEHvdl95QBcsfE8s/AfoCASDXSYEBC7ry4Igg1wsKIIEE/7ry0ImDCbry4IjPFgEg10mBAQu68uCIINcLCiCBBP+68tCJgwm68uCIzxbJJwRDE1CZECQQI21t2zwwVQMUAcrIcQHKAVAHAcoAcAHKAlAFINdJgQELuvLgiCDXCwoggQT/uvLQiYMJuvLgiM8WUAP6AnABymgjbrORf5MkbrPilzMzAXABygDjDSFus5x/AcoAASBu8tCAAcyVMXABygDiyQH7CBUAmH8BygDIcAHKAHABygAkbrOdfwHKAAQgbvLQgFAEzJY0A3ABygDiJG6znX8BygAEIG7y0IBQBMyWNANwAcoA4nABygACfwHKAALJWMwAqsj4QwHMfwHKAFVAUFQg10mBAQu68uCIINcLCiCBBP+68tCJgwm68uCIzxZYINdJgQELuvLgiCDXCwoggQT/uvLQiYMJuvLgiM8WzBLMgQEBzwDJ7VQCASAYIQIBWBkbAhG0o7tnm2eNijAcGgACIwIRt2BbZ5tnjYqQHCABxu1E0NQB+GPSAAGOS/pAASDXSYEBC7ry4Igg1wsKIIEE/7ry0ImDCbry4IgB+kABINdJgQELuvLgiCDXCwoggQT/uvLQiYMJuvLgiAHU1IEBAdcAVUBsFeD4KNcLCoMJuvLgiR0BivpAASDXSYEBC7ry4Igg1wsKIIEE/7ry0ImDCbry4IgB+kABINdJgQELuvLgiCDXCwoggQT/uvLQiYMJuvLgiBIC0QHbPB4BGnAi+ENUEEDbPNDUMFgfANYC0PQEMG0BgQ61AYAQ9A9vofLghwGBDrUiAoAQ9BfIAcj0AMkBzHABygBAA1kg10mBAQu68uCIINcLCiCBBP+68tCJgwm68uCIzxYBINdJgQELuvLgiCDXCwoggQT/uvLQiYMJuvLgiM8WyQAIVHA0JQARvhX3aiaGkAAM3f4AOg==');
 
 const JETTON_NAME = "Test jetton";
 const JETTON_DESCRIPTION = "Test jetton description. Test jetton description. Test jetton description";
@@ -53,14 +55,14 @@ describe('JettonMaster', () => {
             to: jettonMaster.address,
             success: true,
             deploy: true,
-            op: 0x133701,
+            op: OP_CODES.JettonInit,
         });
         expect(deployResult.transactions).toHaveTransaction({
             from: jettonMaster.address,
             to: deployer.address,
             success: true,
             deploy: false,
-            op: 0x133702,
+            op: OP_CODES.JettonInitOk,
         });
     });
 
@@ -102,14 +104,14 @@ describe('JettonMaster', () => {
             from: other.address,
             to: otherJettonMaster.address,
             success: true,
-            op: 0x133701,
+            op: OP_CODES.JettonInit,
         });
         expect(deployResult.transactions).toHaveTransaction({
             from: otherJettonMaster.address,
             to: other.address,
             success: true,
             deploy: false,
-            op: 0x133702,
+            op: OP_CODES.JettonInitOk,
         });
         let metadataResult = await otherJettonMaster.getGetJettonData();
         let jettonContent = metadataResult.jetton_content.beginParse();
@@ -190,7 +192,7 @@ describe('JettonMaster', () => {
             to: jettonMaster.address,
             success: false,
             deploy: false,
-            op: 0x133701,
+            op: OP_CODES.JettonInit,
             exitCode: 6903,
         });
     });
@@ -216,7 +218,7 @@ describe('JettonMaster', () => {
             to: jettonMaster.address,
             success: false,
             deploy: false,
-            op: 0x133701,
+            op: OP_CODES.JettonInit,
             exitCode: 132,
         });
     });
@@ -239,7 +241,7 @@ describe('JettonMaster', () => {
             to: jettonMaster.address,
             success: true,
             deploy: false,
-            op: 0x133703,
+            op: OP_CODES.JettonSetParameter,
         });
 
         // Jetton description
@@ -259,7 +261,7 @@ describe('JettonMaster', () => {
             to: jettonMaster.address,
             success: true,
             deploy: false,
-            op: 0x133703,
+            op: OP_CODES.JettonSetParameter,
         });
 
         // Jetton symbol
@@ -279,7 +281,7 @@ describe('JettonMaster', () => {
             to: jettonMaster.address,
             success: true,
             deploy: false,
-            op: 0x133703,
+            op: OP_CODES.JettonSetParameter,
         });
 
         // Jetton max_supply
@@ -299,7 +301,7 @@ describe('JettonMaster', () => {
             to: jettonMaster.address,
             success: true,
             deploy: false,
-            op: 0x133703,
+            op: OP_CODES.JettonSetParameter,
         });
 
         // Checks
@@ -344,7 +346,7 @@ describe('JettonMaster', () => {
             to: jettonMaster.address,
             success: true,
             deploy: false,
-            op: 0x133704,
+            op: OP_CODES.JettonMint,
         });
         expect(mintResult.transactions).toHaveTransaction({
             from: jettonMaster.address,
@@ -379,7 +381,7 @@ describe('JettonMaster', () => {
             to: jettonMaster.address,
             success: false,
             deploy: false,
-            op: 0x133704,
+            op: OP_CODES.JettonMint,
             exitCode: 132,
         });
     });
@@ -402,16 +404,16 @@ describe('JettonMaster', () => {
             to: jettonMaster.address,
             success: true,
             deploy: false,
-            op: 0x2c76b973,
+            op: OP_CODES.ProvideWalletAddress,
         });
         expect(discoverResult.transactions).toHaveTransaction({
             from: jettonMaster.address,
             to: deployer.address,
             success: true,
             deploy: false,
-            op: 0xd1735400,
+            op: OP_CODES.TakeWalletAddress,
             body: beginCell()
-                .storeUint(0xd1735400, 32)
+                .storeUint(OP_CODES.TakeWalletAddress, 32)
                 .storeUint(0, 64)
                 .storeAddress(otherJettonWallet.address)
                 .storeAddress(null)
@@ -437,16 +439,16 @@ describe('JettonMaster', () => {
             to: jettonMaster.address,
             success: true,
             deploy: false,
-            op: 0x2c76b973,
+            op: OP_CODES.ProvideWalletAddress,
         });
         expect(discoverResult.transactions).toHaveTransaction({
             from: jettonMaster.address,
             to: deployer.address,
             success: true,
             deploy: false,
-            op: 0xd1735400,
+            op: OP_CODES.TakeWalletAddress,
             body: beginCell()
-                .storeUint(0xd1735400, 32)
+                .storeUint(OP_CODES.TakeWalletAddress, 32)
                 .storeUint(0, 64)
                 .storeAddress(otherJettonWallet.address)
                 .storeAddress(other.address)
@@ -455,7 +457,8 @@ describe('JettonMaster', () => {
     });
 
     it('should return system cell', async () => {
-        let systemCell = await jettonMaster.getGetTactSystemCell();
+        let systemCell = await jettonMaster.getGetTactSystemCell();    
         expect(systemCell).toEqualCell(SYSTEM_CELL);
     });
+    
 });
