@@ -150,6 +150,8 @@ trait TEP74JettonWallet with Ownable, DiscoverWalletAddress {
     }
 
     receive(msg: JettonBurn){
+        nativeThrowUnless(ERROR_CODE_INVALID_AMOUNT, msg.amount > 0); // Reject burn with amount <= 0
+
         let ctx = context();
         self.requireOwner();
         nativeThrowUnless(ERROR_CODE_NEED_FEE,
