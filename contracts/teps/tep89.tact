@@ -23,7 +23,8 @@ trait TEP89JettonDiscoverable with DiscoverWalletAddress {
 
     receive(msg: ProvideWalletAddress){
         let ctx = context();
-        nativeThrowUnless(ERROR_CODE_NEED_FEE, ctx.value <= ton("0.05")); // TODO
+        nativeThrowUnless(ERROR_CODE_NEED_FEE, ctx.value >= ton("0.0062")); 
+        
         let init = self.discover_wallet_state_init(myAddress(), msg.owner_address);
         let address = contractAddress(init);
         let owner_address: Address? = null;
