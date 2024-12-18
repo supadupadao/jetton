@@ -51,10 +51,7 @@ contract JettonMaster with TEP74JettonMaster, TEP89JettonDiscoverable, Deployabl
     receive(msg: JettonSetParameter){
         self.requireOwner();
         if (msg.key == "max_supply") {
-            let new_supply = msg.value.loadCoins();
-            nativeThrowUnless(ERROR_CODE_INVALID_AMOUNT, new_supply > 0); // Reject invalid max supply
-            
-            self.max_supply = new_supply;
+            self.max_supply = msg.value.loadCoins();
             return;
         }
         self.metadata.set(msg.key, msg.value);

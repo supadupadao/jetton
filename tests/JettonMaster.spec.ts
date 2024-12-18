@@ -306,9 +306,7 @@ describe('JettonMaster', () => {
 
         // Checks
         let jettonMasterMetadata = await jettonMaster.getGetJettonData();
-        //expect(jettonMasterMetadata.mintable).toEqual(false); 
-        // Should max supply be allowed to be set to 0 so mintable will be false?
-        // What happens with the existing circulation?
+        expect(jettonMasterMetadata.mintable).toEqual(false); 
 
         let jettonContent = jettonMasterMetadata.jetton_content.beginParse();
         expect(jettonContent.loadUint(8)).toEqual(0);
