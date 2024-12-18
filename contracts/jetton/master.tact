@@ -38,8 +38,7 @@ contract JettonMaster with TEP74JettonMaster, TEP89JettonDiscoverable, Deployabl
     receive(msg: JettonInit){
         self.requireOwner();
         nativeThrowIf(ERROR_JETTON_INITIALIZED, self.deployed);
-        nativeThrowUnless(ERROR_CODE_INVALID_AMOUNT, msg.max_supply > 0); // Reject invalid max supply
-
+        
         self.metadata.set("name", msg.jetton_name);
         self.metadata.set("description", msg.jetton_description);
         self.metadata.set("symbol", msg.jetton_symbol);
