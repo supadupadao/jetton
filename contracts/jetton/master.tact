@@ -48,24 +48,17 @@ contract JettonMaster with TEP74JettonMaster, TEP89JettonDiscoverable, Deployabl
         self.deployed = true;
     }
 
-    receive(msg: JettonSetParameter) {
+    receive(msg: JettonSetParameter){
         self.requireOwner();
-
         if (msg.key == "max_supply") {
             let new_supply = msg.value.loadCoins();
-
-             // Prevent zero or negative values
-            nativeThrowUnless(ERROR_CODE_INVALID_AMOUNT, new_supply > 0);
-
-             // Prevent reducing the max supply. What happens with current circulation if we allow this?
-            nativeThrowUnless(ERROR_MAX_SUPPLY_TOO_SMALL, new_supply > self.max_supply);
-
+            nativeThrowUnless(ERROR_CODE_INVALID_AMOUNT, new_supply > 0); // Reject invalid max supply
+            
             self.max_supply = new_supply;
             return;
         }
         self.metadata.set(msg.key, msg.value);
     }
-
 
     receive(msg: JettonMint){
         nativeThrowUnless(ERROR_CODE_INVALID_AMOUNT, msg.amount > 0); // Reject mint with amount <= 0
