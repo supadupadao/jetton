@@ -2,6 +2,7 @@ import { Blockchain, SandboxContract, TreasuryContract } from '@ton/sandbox';
 import { beginCell, Builder, toNano } from '@ton/core';
 import { JettonWallet } from '../build/Jetton/tact_JettonWallet';
 import { JettonMaster } from '../build/Jetton/tact_JettonMaster';
+import { OP_CODES } from './constants/opCodes';
 import '@ton/test-utils';
 
 const JETTON_NAME = "Test jetton";
@@ -77,25 +78,25 @@ describe('JettonMaster', () => {
             to: jettonWallet.address,
             deploy: false,
             success: true,
-            op: 0x0f8a7ea5,
+            op: OP_CODES.JettonTransfer,
         });
         expect(transferResult.transactions).toHaveTransaction({
             from: jettonWallet.address,
             to: otherJettonWallet.address,
             deploy: true,
             success: true,
-            op: 0x178d4519,
+            op: OP_CODES.JettonTransferInternal,
         });
         expect(transferResult.transactions).toHaveTransaction({
             from: otherJettonWallet.address,
             to: other.address,
-            op: 0x7362d09c,
+            op: OP_CODES.JettonTransferNotification,
         });
         expect(transferResult.transactions).toHaveTransaction({
             from: otherJettonWallet.address,
             to: other.address,
             success: true,
-            op: 0xd53276db,
+            op: OP_CODES.Excesses,
         });
 
         let jettonWalletData = await jettonWallet.getGetWalletData();
@@ -127,7 +128,7 @@ describe('JettonMaster', () => {
             to: jettonWallet.address,
             deploy: false,
             success: false,
-            op: 0x0f8a7ea5,
+            op: OP_CODES.JettonTransfer,
             exitCode: 132,
         });
 
@@ -157,7 +158,7 @@ describe('JettonMaster', () => {
             to: jettonWallet.address,
             deploy: false,
             success: false,
-            op: 0x0f8a7ea5,
+            op: OP_CODES.JettonTransfer,
             exitCode: 6901,
         });
 
@@ -184,21 +185,21 @@ describe('JettonMaster', () => {
             to: jettonWallet.address,
             deploy: false,
             success: true,
-            op: 0x595f07bc,
+            op: OP_CODES.JettonBurn,
         });
         expect(transferResult.transactions).toHaveTransaction({
             from: jettonWallet.address,
             to: jettonMaster.address,
             deploy: false,
             success: true,
-            op: 0x7bdd97de,
+            op: OP_CODES.JettonBurnInternal,
         });
         expect(transferResult.transactions).toHaveTransaction({
             from: jettonMaster.address,
             to: deployer.address,
             deploy: false,
             success: true,
-            op: 0x7bdd97de,
+            op: OP_CODES.JettonBurnInternal,
         });
 
         let jettonWalletData = await jettonWallet.getGetWalletData();
@@ -224,7 +225,7 @@ describe('JettonMaster', () => {
             to: jettonWallet.address,
             deploy: false,
             success: false,
-            op: 0x595f07bc,
+            op: OP_CODES.JettonBurn,
             exitCode: 132,
         });
 
@@ -251,7 +252,7 @@ describe('JettonMaster', () => {
             to: jettonWallet.address,
             deploy: false,
             success: false,
-            op: 0x595f07bc,
+            op: OP_CODES.JettonBurn,
             exitCode: 6901,
         });
 
