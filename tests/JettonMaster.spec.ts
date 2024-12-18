@@ -16,7 +16,7 @@ const JETTON_MAX_SUPPLY = toNano("100500");
 const UPDATED_JETTON_NAME = "New test jetton";
 const UPDATED_JETTON_DESCRIPTION = "New test jetton description. New test jetton description. New test jetton description";
 const UPDATED_JETTON_SYMBOL = "NEWJTN";
-const UPDATED_JETTON_MAX_SUPPLY = toNano("200500");
+const UPDATED_JETTON_MAX_SUPPLY = toNano("0");
 
 describe('JettonMaster', () => {
     let blockchain: Blockchain;
