@@ -55,7 +55,7 @@ This is default Tact blueprint project with default commands:
     </tr>
     <tr>
         <td>6902</td>
-        <td>No enoght TON in message</td>
+        <td>No enough TON in message</td>
     </tr>
     <tr>
         <td>6903</td>
