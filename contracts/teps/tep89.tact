@@ -1,4 +1,4 @@
-import "../messages.tact";
+import "./messages/discoverable.tact";
 import "../errors.tact";
 // Trait for generating jetton wallet state init
 trait DiscoverWalletAddress {

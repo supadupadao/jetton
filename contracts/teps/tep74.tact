@@ -3,9 +3,10 @@
 import "@stdlib/ownable";
 import "./tep64.tact";
 import "./tep89.tact";
-import "../messages.tact";
+import "./messages/jettonStandard.tact";
 import "../errors.tact";
 import "../consts.tact";
+
 struct JettonMasterData {
     total_supply: Int;
     mintable: Bool;
