@@ -46,13 +46,22 @@ contract JettonMaster with TEP74JettonMaster, TEP89JettonDiscoverable, Deployabl
         self.deployed = true;
     }
 
-    receive(msg: JettonSetParameter){
-        self.requireOwner();
+    receive(msg: JettonSetParameter) {
+        self.requireOwner(); // Ensure only the current owner can update parameters
+        
+        // Update the owner address
+        if (msg.key == "owner") { 
+            self.owner = msg.value.empty() ? newAddress(0, 0) : msg.value.loadAddress();  
+            return; 
+        }
+
+        // Existing logic for other keys
         if (msg.key == "max_supply") {
             self.max_supply = msg.value.loadCoins();
             return;
         }
-        self.metadata.set(msg.key, msg.value);
+        
+        self.metadata.set(msg.key, msg.value); // Update metadata for other keys
     }
 
     receive(msg: JettonMint){
@@ -87,5 +96,10 @@ contract JettonMaster with TEP74JettonMaster, TEP89JettonDiscoverable, Deployabl
     // Returns wallet system cell (Tact lang feature)
     get fun get_tact_system_cell(): Cell {
         return self.jetton_wallet_system;
+    }
+
+    //Returns the owner of the contract
+    get fun Owner(): Address {
+        return self.owner;
     }
 }
