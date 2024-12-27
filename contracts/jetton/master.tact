@@ -7,7 +7,7 @@ import "../messages.tact";
 import "../errors.tact";
 
 @interface("org.ton.jetton.master")
-contract JettonMaster with TEP74JettonMaster, TEP89JettonDiscoverable, Deployable, Ownable {
+contract JettonMaster with TEP74JettonMaster, TEP89JettonDiscoverable, Deployable, OwnableTransferable {
     // Maximum tokens can be minted
     max_supply: Int = ton("21000000");
     // Current tokens minted
@@ -47,13 +47,16 @@ contract JettonMaster with TEP74JettonMaster, TEP89JettonDiscoverable, Deployabl
         self.deployed = true;
     }
 
-    receive(msg: JettonSetParameter){
-        self.requireOwner();
+    receive(msg: JettonSetParameter) {
+        self.requireOwner(); // Ensure only the current owner can update parameters
+        
+        // Update max supply
         if (msg.key == "max_supply") {
             self.max_supply = msg.value.loadCoins();
             return;
         }
-        self.metadata.set(msg.key, msg.value);
+        
+        self.metadata.set(msg.key, msg.value); // Update metadata for other keys
     }
 
     receive(msg: JettonMint){
@@ -89,7 +92,7 @@ contract JettonMaster with TEP74JettonMaster, TEP89JettonDiscoverable, Deployabl
     }
 
     // Returns wallet system cell (Tact lang feature)
-    get fun get_tact_system_cell(): Cell {
+    get fun tact_system_cell(): Cell {
         return self.jetton_wallet_system;
     }
 }

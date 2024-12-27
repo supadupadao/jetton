@@ -459,7 +459,7 @@ describe('JettonMaster', () => {
     });
 
     it('should return system cell', async () => {
-        let systemCell = await jettonMaster.getGetTactSystemCell();    
+        let systemCell = await jettonMaster.getTactSystemCell();
         expect(systemCell).toEqualCell(SYSTEM_CELL);
     });
     

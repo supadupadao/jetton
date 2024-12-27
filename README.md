@@ -25,6 +25,9 @@ This is default Tact blueprint project with default commands:
 - - - `master.tact` - jetton master contract entrypoint
 - - - `wallet.tact` - jetton wallet contract entrypoint
 - - `teps` - traits with [TEPs](https://github.com/ton-blockchain/TEPs/) realization
+- - - `messages` - API messages for TEP traits
+- - - - `discoverable` -  messages related to the tep89 "discoverable" trait
+- - - - `jettonStandard` -  messages related to the tep74 jettons standard
 - - - `tep64.tact` - trait implementation of [TEP 64](https://github.com/ton-blockchain/TEPs/blob/master/text/0064-token-data-standard.md)
 - - - `tep74.tact` - trait implementation of [TEP 74](https://github.com/ton-blockchain/TEPs/blob/master/text/0074-jettons-standard.md)
 - - - `tep89.tact` - trait implementation of [TEP 89](https://github.com/ton-blockchain/TEPs/blob/master/text/0089-jetton-wallet-discovery.md)
