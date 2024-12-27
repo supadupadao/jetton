@@ -97,9 +97,4 @@ contract JettonMaster with TEP74JettonMaster, TEP89JettonDiscoverable, Deployabl
     get fun get_tact_system_cell(): Cell {
         return self.jetton_wallet_system;
     }
-
-    //Returns the owner of the contract
-    get fun Owner(): Address {
-        return self.owner;
-    }
 }
