@@ -7,7 +7,7 @@ import "../messages.tact";
 import "../errors.tact";
 
 @interface("org.ton.jetton.master")
-contract JettonMaster with TEP74JettonMaster, TEP89JettonDiscoverable, Deployable, Ownable {
+contract JettonMaster with TEP74JettonMaster, TEP89JettonDiscoverable, Deployable, OwnableTransferable {
     // Maximum tokens can be minted
     max_supply: Int = ton("21000000");
     // Current tokens minted
@@ -50,13 +50,7 @@ contract JettonMaster with TEP74JettonMaster, TEP89JettonDiscoverable, Deployabl
     receive(msg: JettonSetParameter) {
         self.requireOwner(); // Ensure only the current owner can update parameters
         
-        // Update the owner address
-        if (msg.key == "owner") { 
-            self.owner = msg.value.empty() ? newAddress(0, 0) : msg.value.loadAddress();  
-            return; 
-        }
-
-        // Existing logic for other keys
+        // Update max supply
         if (msg.key == "max_supply") {
             self.max_supply = msg.value.loadCoins();
             return;
