@@ -102,21 +102,21 @@ describe('JettonMaster', () => {
                     value: toNano("0.05"),
                 },
                 {
-                    $$type: 'JettonSetParameter',
-                    key: "owner",
-                    value: beginCell().storeAddress(other.address).asSlice()
+                    $$type: 'ChangeOwner',
+                    queryId: 0n,
+                    newOwner: other.address,
                 }
             );
 
             expect(ownerUpdateResult.transactions).toHaveTransaction({
-                from: deployer.address,
-                to: jettonMaster.address,
+                from: jettonMaster.address,
+                to: deployer.address,
                 success: true,
                 deploy: false,
-                op: 0x133703,
-            });  
-
-            const owner = await jettonMaster.getOwner(); 
+                //Is OP assigned by the system? can we get it and add it to the test?   
+            });
+    
+            const owner = await jettonMaster.getOwner();
             expect(owner.toRawString()).toEqual(other.address.toRawString());
         });
         
@@ -180,31 +180,31 @@ describe('JettonMaster', () => {
         });
 
         it('should revoke jetton master owner', async () => {
-            // Jetton name
             const ownerUpdateResult = await jettonMaster.send(
                 other.getSender(),
                 {
                     value: toNano("0.05"),
                 },
                 {
-                    $$type: 'JettonSetParameter',
-                    key: "owner",
-                    value: beginCell().asSlice()
+                    $$type: 'ChangeOwner',
+                    queryId: 0n,
+                    newOwner: new Address(0, Buffer.alloc(32)),
+                    //Is OP assigned by the system? can we get it and add it to the test?   
                 }
             );
 
             expect(ownerUpdateResult.transactions).toHaveTransaction({
-                from: other.address,
-                to: jettonMaster.address,
+                from: jettonMaster.address,
+                to: other.address,
                 success: true,
                 deploy: false,
-                op: 0x133703,
             });  
 
             const owner = await jettonMaster.getOwner(); 
             expect(owner.toRawString()).toEqual(new Address(0, Buffer.alloc(32)).toRawString());
         });
 
+        
         it('should not mint tokens not owner', async () => {
             const mintResult = await jettonMaster.send(
                 other.getSender(),
