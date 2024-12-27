@@ -94,7 +94,7 @@ contract JettonMaster with TEP74JettonMaster, TEP89JettonDiscoverable, Deployabl
     }
 
     // Returns wallet system cell (Tact lang feature)
-    get fun get_tact_system_cell(): Cell {
+    get fun tact_system_cell(): Cell {
         return self.jetton_wallet_system;
     }
 }
