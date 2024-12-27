@@ -58,7 +58,7 @@ This is default Tact blueprint project with default commands:
     </tr>
     <tr>
         <td>6902</td>
-        <td>No enoght TON in message</td>
+        <td>No enough TON in message</td>
     </tr>
     <tr>
         <td>6903</td>
@@ -70,6 +70,12 @@ This is default Tact blueprint project with default commands:
         <td>6904</td>
         <td>
             Max supply exceeded.</br><i>Occurs when you try mint more tokens than max_supply parameter allow.</i>
+        </td>
+    </tr>
+    <tr>
+        <td>6905</td>
+        <td>
+            Invalid transfer amount.</br><i>Occurs when you try to send, burn or mint 0 tokens.</i>
         </td>
     </tr>
 </table>

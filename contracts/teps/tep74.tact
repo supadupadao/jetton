@@ -30,6 +30,8 @@ trait TEP74JettonMaster with TEP64Metadata, DiscoverWalletAddress {
     metadata: OnchainMetadata;
 
     receive(msg: JettonBurnInternal){
+        nativeThrowUnless(ERROR_CODE_INVALID_AMOUNT, msg.amount > 0); // Reject burn with amount <= 0
+
         let ctx = context();
         let init = self.discover_wallet_state_init(myAddress(), msg.sender);
         let wallet_address = contractAddress(init);
@@ -76,6 +78,8 @@ trait TEP74JettonWallet with Ownable, DiscoverWalletAddress {
     balance: Int;
 
     receive(msg: JettonTransfer){
+        nativeThrowUnless(ERROR_CODE_INVALID_AMOUNT, msg.amount > 0); // Reject transfers with amount <= 0
+
         let ctx = context();
         self.requireOwner();
         self.balance = self.balance - msg.amount;
@@ -106,6 +110,8 @@ trait TEP74JettonWallet with Ownable, DiscoverWalletAddress {
     }
 
     receive(msg: JettonTransferInternal){
+        nativeThrowUnless(ERROR_CODE_INVALID_AMOUNT, msg.amount > 0); // Reject transfers with amount <= 0
+
         let ctx = context();
         if (ctx.sender != self.master) {
             let init = self.discover_wallet_state_init(self.master, msg.from);
@@ -149,6 +155,8 @@ trait TEP74JettonWallet with Ownable, DiscoverWalletAddress {
     }
 
     receive(msg: JettonBurn){
+        nativeThrowUnless(ERROR_CODE_INVALID_AMOUNT, msg.amount > 0); // Reject burn with amount <= 0
+
         let ctx = context();
         self.requireOwner();
         nativeThrowUnless(ERROR_CODE_NEED_FEE,
