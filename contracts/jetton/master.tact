@@ -71,7 +71,12 @@ contract JettonMaster with TEP74JettonMaster, TEP89JettonDiscoverable, Deployabl
         nativeThrowUnless(ERROR_CODE_INVALID_AMOUNT, msg.amount > 0); // Reject mint with amount <= 0
         self.requireOwner();
 
-        nativeThrowIf(ERROR_MAX_SUPPLY_EXCEEDED, (self.current_supply + msg.amount) > self.max_supply);
+        // Ensure the new supply does not exceed the max supply
+        // Only for the case that max_supply is not set to unlimited (0)
+        if(self.max_supply > 0){
+            nativeThrowIf(ERROR_MAX_SUPPLY_EXCEEDED, (self.current_supply + msg.amount) > self.max_supply);
+        }
+
         let init = self.discover_wallet_state_init(myAddress(), msg.destination);
         let to = contractAddress(init);
         send(SendParameters{
