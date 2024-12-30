@@ -11,7 +11,7 @@ const JETTON_SYMBOL = "TSTJTN";
 const JETTON_MAX_SUPPLY = toNano("100500");
 
 
-describe('JettonMaster', () => {
+describe('OwnerShip', () => {
     let blockchain: Blockchain;
     let deployer: SandboxContract<TreasuryContract>;
     let other: SandboxContract<TreasuryContract>;
