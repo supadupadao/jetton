@@ -9,7 +9,7 @@ import "../errors.tact";
 @interface("org.ton.jetton.master")
 contract JettonMaster with TEP74JettonMaster, TEP89JettonDiscoverable, Deployable, OwnableTransferable {
     // Maximum tokens can be minted
-    max_supply: Int = ton("21000000");
+    max_supply: Int = 0;
     // Current tokens minted
     current_supply: Int = 0;
     // Administrator of token. Who can mint new tokens
@@ -22,6 +22,7 @@ contract JettonMaster with TEP74JettonMaster, TEP89JettonDiscoverable, Deployabl
     metadata: OnchainMetadata;
     // Is token initialized (to avoid double init)
     deployed: Bool = false;
+    
     init(owner: Address){
         self.owner = owner;
         let init = initOf JettonWallet(myAddress(), myAddress());
@@ -42,7 +43,7 @@ contract JettonMaster with TEP74JettonMaster, TEP89JettonDiscoverable, Deployabl
         self.metadata.set("name", msg.jetton_name);
         self.metadata.set("description", msg.jetton_description);
         self.metadata.set("symbol", msg.jetton_symbol);
-        self.max_supply = msg.max_supply;
+        self.max_supply = msg.max_supply > 0 ? msg.max_supply : 0;
         self.notify(JettonInitOk{query_id: msg.query_id}.toCell());
         self.deployed = true;
     }
@@ -52,7 +53,11 @@ contract JettonMaster with TEP74JettonMaster, TEP89JettonDiscoverable, Deployabl
         
         // Update max supply
         if (msg.key == "max_supply") {
-            self.max_supply = msg.value.loadCoins();
+            //Cannot set max supply to 0 through this method
+            let new_max_supply = msg.value.loadCoins();
+            nativeThrowIf(ERROR_CODE_INVALID_AMOUNT, new_max_supply <= self.max_supply);
+
+            self.max_supply = new_max_supply;
             return;
         }
         
@@ -63,7 +68,12 @@ contract JettonMaster with TEP74JettonMaster, TEP89JettonDiscoverable, Deployabl
         nativeThrowUnless(ERROR_CODE_INVALID_AMOUNT, msg.amount > 0); // Reject mint with amount <= 0
         self.requireOwner();
 
-        nativeThrowIf(ERROR_MAX_SUPPLY_EXCEEDED, (self.current_supply + msg.amount) > self.max_supply);
+        // Ensure the new supply does not exceed the max supply
+        // Only for the case that max_supply is not set to unlimited (0)
+        if(self.max_supply > 0){
+            nativeThrowIf(ERROR_MAX_SUPPLY_EXCEEDED, (self.current_supply + msg.amount) > self.max_supply);
+        }
+
         let init = self.discover_wallet_state_init(myAddress(), msg.destination);
         let to = contractAddress(init);
         send(SendParameters{

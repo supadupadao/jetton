@@ -299,14 +299,15 @@ describe('JettonMaster', () => {
         expect(maxSupplyUpdateResult.transactions).toHaveTransaction({
             from: deployer.address,
             to: jettonMaster.address,
-            success: true,
+            success: false,
             deploy: false,
             op: OP_CODES.JettonSetParameter,
+            exitCode: 6905
         });
 
         // Checks
         let jettonMasterMetadata = await jettonMaster.getGetJettonData();
-        expect(jettonMasterMetadata.mintable).toEqual(false); 
+        expect(jettonMasterMetadata.mintable).toEqual(true); 
 
         let jettonContent = jettonMasterMetadata.jetton_content.beginParse();
         expect(jettonContent.loadUint(8)).toEqual(0);
