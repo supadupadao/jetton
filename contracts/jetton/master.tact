@@ -55,9 +55,6 @@ contract JettonMaster with TEP74JettonMaster, TEP89JettonDiscoverable, Deployabl
         if (msg.key == "max_supply") {
             //Cannot set max supply to 0 through this method
             let new_max_supply = msg.value.loadCoins();
-            nativeThrowIf(ERROR_CODE_INVALID_AMOUNT, new_max_supply <= 0);
-
-            // Ensure the new max supply is greater than the current max supply
             nativeThrowIf(ERROR_CODE_INVALID_AMOUNT, new_max_supply <= self.max_supply);
 
             self.max_supply = new_max_supply;
