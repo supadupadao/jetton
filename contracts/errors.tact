@@ -12,3 +12,5 @@ const ERROR_MAX_SUPPLY_EXCEEDED: Int = 6904;
 const ERROR_CODE_INVALID_AMOUNT: Int = 6905;
 // Minting already disabled
 const ERROR_CODE_MINTING_ALREADY_DISABLED: Int = 6906; 
+// Minting is disabled
+const ERROR_CODE_MINTING_DISABLED: Int = 6907;

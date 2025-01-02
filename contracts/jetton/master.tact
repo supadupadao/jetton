@@ -73,6 +73,7 @@ contract JettonMaster with TEP74JettonMaster, TEP89JettonDiscoverable, Deployabl
     }
 
     receive(msg: JettonMint){
+        nativeThrowIf(ERROR_CODE_MINTING_DISABLED, !self.mintable); // Reject mint if minting is disabled
         nativeThrowUnless(ERROR_CODE_INVALID_AMOUNT, msg.amount > 0); // Reject mint with amount <= 0
         self.requireOwner();
 
