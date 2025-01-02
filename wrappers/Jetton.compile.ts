@@ -4,6 +4,6 @@ export const compile: CompilerConfig = {
     lang: 'tact',
     target: 'contracts/jetton/master.tact',
     options: {
-        debug: true,
+        interfacesGetter: true,
     },
 };
