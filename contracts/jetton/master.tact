@@ -12,6 +12,8 @@ contract JettonMaster with TEP74JettonMaster, TEP89JettonDiscoverable, Deployabl
     max_supply: Int = 0;
     // Current tokens minted
     current_supply: Int = 0;
+    // Is token mintable
+    mintable: Bool = true;
     // Administrator of token. Who can mint new tokens
     owner: Address;
     // Initial code of jetton wallet
@@ -58,6 +60,12 @@ contract JettonMaster with TEP74JettonMaster, TEP89JettonDiscoverable, Deployabl
             nativeThrowIf(ERROR_CODE_INVALID_AMOUNT, new_max_supply <= self.max_supply);
 
             self.max_supply = new_max_supply;
+            return;
+        }else if(msg.key == "mintable"){
+            // Once mintable is set to false, it cannot be changed back to true
+            nativeThrowIf(ERROR_CODE_MINTING_ALREADY_DISABLED, !self.mintable);
+
+            self.mintable = msg.value.loadBool();
             return;
         }
         
