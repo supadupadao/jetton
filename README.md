@@ -78,4 +78,16 @@ This is default Tact blueprint project with default commands:
             Invalid transfer amount.</br><i>Occurs when you try to send, burn or mint 0 tokens.</i>
         </td>
     </tr>
+        <tr>
+        <td>6906</td>
+        <td>
+            Minting already disabled.</br><i>Occurs when you attempt to enable minting after it has been permanently disabled.</i>
+        </td>
+    </tr>
+        <tr>
+        <td>6907</td>
+        <td>
+            Minting is disabled.</br><i>Occurs when you try to mint tokens while the minting functionality is disabled.</i>
+        </td>
+    </tr>
 </table>
