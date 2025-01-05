@@ -24,7 +24,7 @@ describe('JettonMaster', () => {
         deployer = await blockchain.treasury('deployer');
         other = await blockchain.treasury("other");
 
-        jettonMaster = blockchain.openContract(await JettonMaster.fromInit(deployer.address));
+        jettonMaster = blockchain.openContract(await JettonMaster.fromInit(deployer.address, 0n));
         jettonWallet = blockchain.openContract(await JettonWallet.fromInit(jettonMaster.address, deployer.address));
         otherJettonWallet = blockchain.openContract(await JettonWallet.fromInit(jettonMaster.address, other.address));
 

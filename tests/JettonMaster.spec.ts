@@ -32,7 +32,7 @@ describe('JettonMaster', () => {
         deployer = await blockchain.treasury('deployer');
         other = await blockchain.treasury("other");
 
-        jettonMaster = blockchain.openContract(await JettonMaster.fromInit(deployer.address));
+        jettonMaster = blockchain.openContract(await JettonMaster.fromInit(deployer.address, 0n));
         jettonWallet = blockchain.openContract(await JettonWallet.fromInit(jettonMaster.address, deployer.address));
         otherJettonWallet = blockchain.openContract(await JettonWallet.fromInit(jettonMaster.address, other.address));
 
@@ -66,6 +66,14 @@ describe('JettonMaster', () => {
         });
     });
 
+    it('should mint multiple jettons per wallet', async () => {
+        const jettonMasterSameNonce = blockchain.openContract(await JettonMaster.fromInit(deployer.address, 0n));;
+        expect(jettonMasterSameNonce.address).toEqualAddress(jettonMaster.address);
+
+        const jettonMasterDiffNonce = blockchain.openContract(await JettonMaster.fromInit(deployer.address, 1n));;
+        expect(jettonMasterDiffNonce.address).not.toEqualAddress(jettonMaster.address);
+    });
+
     it('should handle big strings', async () => {
         const LONG_JETTON_NAME = JETTON_NAME.repeat(100);
         const LONG_JETTON_DESCRIPTION = JETTON_DESCRIPTION.repeat(20);
@@ -75,7 +83,7 @@ describe('JettonMaster', () => {
         expect(LONG_JETTON_DESCRIPTION.length).toBeGreaterThan(1024);
         expect(LONG_JETTON_SYMBOL.length).toBeGreaterThan(1024);
 
-        const otherJettonMaster = blockchain.openContract(await JettonMaster.fromInit(other.address));
+        const otherJettonMaster = blockchain.openContract(await JettonMaster.fromInit(other.address, 0n));
         await otherJettonMaster.send(
             other.getSender(),
             {
