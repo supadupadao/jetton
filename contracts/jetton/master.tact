@@ -25,7 +25,7 @@ contract JettonMaster with TEP74JettonMaster, TEP89JettonDiscoverable, Deployabl
     // Is token initialized (to avoid double init)
     deployed: Bool = false;
     
-    init(owner: Address){
+    init(owner: Address, nonce: Int){
         self.owner = owner;
         let init = initOf JettonWallet(myAddress(), myAddress());
         let data = init.data.beginParse();

@@ -3,7 +3,7 @@ import { JettonMaster } from '../wrappers/JettonMaster';
 import { NetworkProvider } from '@ton/blueprint';
 
 export async function run(provider: NetworkProvider) {
-    const jettonMaster = provider.open(await JettonMaster.fromInit(provider.sender().address!!));
+    const jettonMaster = provider.open(await JettonMaster.fromInit(provider.sender().address!!, 0n));
 
     await jettonMaster.send(
         provider.sender(),
