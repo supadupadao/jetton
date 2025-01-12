@@ -2,7 +2,9 @@ import { Blockchain, SandboxContract, TreasuryContract } from '@ton/sandbox';
 import { beginCell, Address, toNano } from '@ton/core';
 import { JettonWallet } from '../build/Jetton/tact_JettonWallet';
 import { JettonMaster } from '../build/Jetton/tact_JettonMaster';
+import { OP_CODES , ERROR_CODES  } from './constants/constants';
 import '@ton/test-utils';
+import { error } from 'console';
 
 
 const JETTON_NAME = "Test jetton";
@@ -49,14 +51,14 @@ describe('OwnerShip', () => {
             to: jettonMaster.address,
             success: true,
             deploy: true,
-            op: 0x133701,
+            op: OP_CODES.JettonInit,
         });
         expect(deployResult.transactions).toHaveTransaction({
             from: jettonMaster.address,
             to: deployer.address,
             success: true,
             deploy: false,
-            op: 0x133702,
+            op: OP_CODES.JettonInitOk,
         });
     });
 
@@ -78,14 +80,14 @@ describe('OwnerShip', () => {
             to: jettonMaster.address,
             success: true,
             deploy: false,
-            op: 0x133704,
+            op: OP_CODES.JettonMint,
         });
         expect(mintResult.transactions).toHaveTransaction({
             from: jettonMaster.address,
             to: jettonWallet.address,
             success: true,
             deploy: true,
-            op: 0x178d4519,
+            op: OP_CODES.JettonTransferInternal,
         });
 
         let jettonMasterMetadata = await jettonMaster.getGetJettonData();
@@ -139,8 +141,8 @@ describe('OwnerShip', () => {
                 to: jettonMaster.address,
                 success: false,
                 deploy: false,
-                op: 0x133704,
-                exitCode: 132,
+                op: OP_CODES.JettonMint,
+                exitCode: ERROR_CODES.InvalidOwner,
             });
         });
 
@@ -162,7 +164,7 @@ describe('OwnerShip', () => {
                 to: jettonMaster.address,
                 success: true,
                 deploy: false,
-                op: 0x133704,
+                op: OP_CODES.JettonMint,
             });
 
             expect(mintResult.transactions).toHaveTransaction({
@@ -170,7 +172,7 @@ describe('OwnerShip', () => {
                 to: jettonWallet2.address,
                 success: true,
                 deploy: true,
-                op: 0x178d4519,
+                op: OP_CODES.JettonTransferInternal,
             });
     
             let jettonMasterMetadata = await jettonMaster.getGetJettonData();
@@ -224,8 +226,8 @@ describe('OwnerShip', () => {
                 to: jettonMaster.address,
                 success: false,
                 deploy: false,
-                op: 0x133704,
-                exitCode: 132,
+                op: OP_CODES.JettonMint,
+                exitCode: ERROR_CODES.InvalidOwner,
             });
         });
 });
