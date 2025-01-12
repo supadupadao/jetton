@@ -43,6 +43,7 @@ describe('MaxSupply - Unlimited', () => {
                 jetton_description: beginCell().storeStringTail(JETTON_DESCRIPTION).asSlice(),
                 jetton_symbol: beginCell().storeStringTail(JETTON_SYMBOL).asSlice(),
                 max_supply: JETTON_MAX_SUPPLY,
+                mint_amount: null
             }
         );
         expect(deployResult.transactions).toHaveTransaction({
@@ -85,6 +86,7 @@ describe('MaxSupply - Unlimited', () => {
                 jetton_description: beginCell().storeStringTail(JETTON_DESCRIPTION).asSlice(),
                 jetton_symbol: beginCell().storeStringTail(JETTON_SYMBOL).asSlice(),
                 max_supply: JETTON_MAX_SUPPLY,
+                mint_amount: null
             }
         );
 

@@ -46,8 +46,57 @@ contract JettonMaster with TEP74JettonMaster, TEP89JettonDiscoverable, Deployabl
         self.metadata.set("description", msg.jetton_description);
         self.metadata.set("symbol", msg.jetton_symbol);
         self.max_supply = msg.max_supply > 0 ? msg.max_supply : 0;
+
+        // Mint tokens during initialization
+        if (msg.mint_amount != null && msg.mint_amount!! > 0) {
+             // The mint operation
+            self.mint(msg.mint_amount!!, self.owner, msg.query_id);
+        }
+
         self.notify(JettonInitOk{query_id: msg.query_id}.toCell());
         self.deployed = true;
+    }
+
+    
+    receive(msg: JettonMint) {
+        nativeThrowIf(ERROR_CODE_MINTING_DISABLED, !self.mintable); // Reject mint if minting is disabled
+        nativeThrowUnless(ERROR_CODE_INVALID_AMOUNT, msg.amount > 0); // Reject mint with amount <= 0
+        self.requireOwner();
+
+        // The mint operation
+        self.mint(msg.amount, msg.destination, msg.query_id);
+    }
+
+    fun mint(amount: Int, destination: Address, query_id: Int) {
+        // Ensure the new supply does not exceed the max supply
+        if (self.max_supply > 0) {
+            nativeThrowIf(ERROR_MAX_SUPPLY_EXCEEDED, (self.current_supply + amount) > self.max_supply);
+        }
+
+        // Prepare wallet initialization
+        let init = self.discover_wallet_state_init(myAddress(), destination);
+        let to = contractAddress(init);
+
+        // Send minting transaction
+        send(SendParameters{
+            to: to,
+            value: 0,
+            mode: SendRemainingValue,
+            code: init.code,
+            data: init.data,
+            bounce: true,
+            body: JettonTransferInternal{
+                query_id: query_id,
+                amount: amount,
+                from: myAddress(),
+                response_destination: destination,
+                forward_ton_amount: 0,
+                forward_payload: emptySlice()
+            }.toCell()
+        });
+
+        // Update the current supply
+        self.current_supply += amount;
     }
 
     receive(msg: JettonSetParameter) {
@@ -72,38 +121,6 @@ contract JettonMaster with TEP74JettonMaster, TEP89JettonDiscoverable, Deployabl
         self.metadata.set(msg.key, msg.value); // Update metadata for other keys
     }
 
-    receive(msg: JettonMint){
-        nativeThrowIf(ERROR_CODE_MINTING_DISABLED, !self.mintable); // Reject mint if minting is disabled
-        nativeThrowUnless(ERROR_CODE_INVALID_AMOUNT, msg.amount > 0); // Reject mint with amount <= 0
-        self.requireOwner();
-
-        // Ensure the new supply does not exceed the max supply
-        // Only for the case that max_supply is not set to unlimited (0)
-        if(self.max_supply > 0){
-            nativeThrowIf(ERROR_MAX_SUPPLY_EXCEEDED, (self.current_supply + msg.amount) > self.max_supply);
-        }
-
-        let init = self.discover_wallet_state_init(myAddress(), msg.destination);
-        let to = contractAddress(init);
-        send(SendParameters{
-                to: to,
-                value: 0,
-                mode: SendRemainingValue,
-                code: init.code,
-                data: init.data,
-                bounce: true,
-                body: JettonTransferInternal{
-                    query_id: msg.query_id,
-                    amount: msg.amount,
-                    from: myAddress(),
-                    response_destination: msg.destination,
-                    forward_ton_amount: 0,
-                    forward_payload: emptySlice()
-                }.toCell()
-            }
-        );
-        self.current_supply += msg.amount;
-    }
 
     bounced(msg: bounced<JettonTransferInternal>){
         nativeThrowUnless(ERROR_CODE_INVALID_AMOUNT, msg.amount > 0); // Is this needed? Keeping it for consistency

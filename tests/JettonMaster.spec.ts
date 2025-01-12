@@ -48,6 +48,7 @@ describe('JettonMaster', () => {
                 jetton_description: beginCell().storeStringTail(JETTON_DESCRIPTION).asSlice(),
                 jetton_symbol: beginCell().storeStringTail(JETTON_SYMBOL).asSlice(),
                 max_supply: JETTON_MAX_SUPPLY,
+                mint_amount: null
             }
         );
         expect(deployResult.transactions).toHaveTransaction({
@@ -106,6 +107,7 @@ describe('JettonMaster', () => {
                 jetton_description: beginCell().storeStringRefTail(LONG_JETTON_DESCRIPTION).asCell().asSlice(),
                 jetton_symbol: beginCell().storeStringRefTail(LONG_JETTON_SYMBOL).asCell().asSlice(),
                 max_supply: JETTON_MAX_SUPPLY,
+                mint_amount: null
             }
         );
         expect(deployResult.transactions).toHaveTransaction({
@@ -192,6 +194,7 @@ describe('JettonMaster', () => {
                 jetton_description: beginCell().storeStringTail(JETTON_DESCRIPTION).asSlice(),
                 jetton_symbol: beginCell().storeStringTail(JETTON_SYMBOL).asSlice(),
                 max_supply: JETTON_MAX_SUPPLY,
+                mint_amount: null
             }
         );
 
@@ -218,6 +221,7 @@ describe('JettonMaster', () => {
                 jetton_description: beginCell().storeStringTail(JETTON_DESCRIPTION).asSlice(),
                 jetton_symbol: beginCell().storeStringTail(JETTON_SYMBOL).asSlice(),
                 max_supply: JETTON_MAX_SUPPLY,
+                mint_amount: null
             }
         );
 
