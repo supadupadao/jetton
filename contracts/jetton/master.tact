@@ -46,15 +46,15 @@ contract JettonMaster with TEP74JettonMaster, TEP89JettonDiscoverable, Deployabl
         self.metadata.set("description", msg.jetton_description);
         self.metadata.set("symbol", msg.jetton_symbol);
         self.max_supply = msg.max_supply > 0 ? msg.max_supply : 0;
-        self.notify(JettonInitOk{query_id: msg.query_id}.toCell());
-        self.deployed = true;
-
 
          // Mint tokens during initialization
         if (msg.mint_amount != null && msg.mint_amount!! > 0) {
              // The mint operation
             self.mint(msg.mint_amount!!, self.owner, msg.query_id);
         }
+
+        self.notify(JettonInitOk{query_id: msg.query_id}.toCell());
+        self.deployed = true;
     }
 
     
