@@ -16,6 +16,8 @@ According to [TON Jetton Standard](https://github.com/ton-blockchain/TEPs/blob/m
 
 ## Exit codes
 
+This project using custom exit codes for specific error. You can match received exit code with following list and get human-friednly error text.
+
 [Standard Tact exit codes](https://docs.tact-lang.org/book/exit-codes)
 
 <table>
