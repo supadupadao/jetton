@@ -48,25 +48,31 @@ contract JettonMaster with TEP74JettonMaster, TEP89JettonDiscoverable, Deployabl
         self.max_supply = msg.max_supply > 0 ? msg.max_supply : 0;
         self.deployed = true;
 
-        send(SendParameters{
-            to: context().sender, // back to the sender
-            value: ton("0.02"),   
-            bounce: false,
-            mode: 0,
-            body: JettonInitOk{query_id: msg.query_id}.toCell() 
-        });
-
         // Mint tokens during initialization
         if (msg.mint_amount != null && msg.mint_amount!! > 0) {
             // Calculate remaining balance for minting
             let initialTransactionValue = context().value;
             let forwardFee = context().readForwardFee();
-            let min_balance: Int = ton("0.01");
-            let remainingValue = initialTransactionValue - ton("0.02") - min_balance - forwardFee;
+            let compute_gas: Int = ton("0.01");
+            let notify_gas: Int = ton("0.02");
+            let remainingValue = initialTransactionValue - notify_gas - compute_gas - forwardFee;
 
             // Ensure remaining value is sufficient
             nativeThrowUnless(ERROR_CODE_NEED_FEE,remainingValue > ton("0.05"));
+
+            //Excess ton will be handled by the transfer process
             self.mint(msg.mint_amount!!, self.owner, msg.query_id,remainingValue);
+
+            send(SendParameters{
+                to: context().sender, // back to the sender
+                value: notify_gas,    //reserved gas for this op
+                bounce: false,
+                mode: 0,
+                body: JettonInitOk{query_id: msg.query_id}.toCell() 
+            });
+        }else{
+            // notify and send remaining ton back
+            self.notify(JettonInitOk{query_id: msg.query_id}.toCell());
         }
     }
 
