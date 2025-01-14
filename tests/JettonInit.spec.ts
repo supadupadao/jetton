@@ -1,5 +1,5 @@
-import { Blockchain, SandboxContract, TreasuryContract, printTransactionFees } from '@ton/sandbox';
-import { beginCell, Builder, Cell, Dictionary, toNano } from '@ton/core';
+import { Blockchain, SandboxContract, TreasuryContract  } from '@ton/sandbox';
+import { beginCell, toNano } from '@ton/core';
 import { JettonWallet } from '../build/Jetton/tact_JettonWallet';
 import { JettonMaster } from '../build/Jetton/tact_JettonMaster';
 import { OP_CODES , SYSTEM_CELL, ERROR_CODES} from './constants/constants';
@@ -19,6 +19,7 @@ describe('JettonMaster', () => {
     let jettonWallet: SandboxContract<JettonWallet>;
     let otherJettonWallet: SandboxContract<JettonWallet>;
 
+    // handle the init and optional minting
     const initializeJettonMaster = async (mintAmount: bigint | null) => {
         const initValue = mintAmount && mintAmount > 0n ? toNano("1") : toNano("0.05");
 
@@ -37,42 +38,35 @@ describe('JettonMaster', () => {
                 max_supply: JETTON_MAX_SUPPLY,
                 mint_amount: mintAmount, // Pass the mint amount as a parameter
             }
-        );
-
-        if (mintAmount && mintAmount > 0n) {
-            printTransactionFees(deployResult.transactions)
-        }
+        );      
         
         // Verify the deployment transactions
-        /*expect(deployResult.transactions).toHaveTransaction({
+        expect(deployResult.transactions).toHaveTransaction({
             from: deployer.address,
             to: jettonMaster.address,
             success: true,
             deploy: true,
             op: OP_CODES.JettonInit,
-        });
-        expect(deployResult.transactions).toHaveTransaction({
+        });  
+
+       expect(deployResult.transactions).toHaveTransaction({
             from: jettonMaster.address,
             to: deployer.address,
             success: true,
             deploy: false,
             op: OP_CODES.JettonInitOk,
-        });*/
+        });
     
         // If mintAmount is specified and greater than 0, validate the minting logic
-        /*if (mintAmount && mintAmount > 0n) {
+        if (mintAmount && mintAmount > 0n) {
             expect(deployResult.transactions).toHaveTransaction({
                 from: jettonMaster.address,
                 to: jettonWallet.address,
-                deploy: false,
+                deploy: true,
                 success: true,
                 op: OP_CODES.JettonTransferInternal,
             });
-    
-            // Fetch updated wallet data and validate balance
-            let jettonWalletData = await jettonWallet.getGetWalletData();
-            expect(jettonWalletData.balance).toEqual(mintAmount);
-        }*/
+        }
     };
 
     beforeEach(async () => {
@@ -166,11 +160,80 @@ describe('JettonMaster', () => {
         expect(jettonWalletData.balance).toEqual(toNano("1337"));
     });
 
+    it('should init with mint tokens', async () => {
+        const mint = 120n
+        await initializeJettonMaster(mint);
+            
+        // Fetch updated wallet data and validate balance
+        let jettonWalletData = await jettonWallet.getGetWalletData();
+        expect(jettonWalletData.balance).toEqual(mint);
+    });    
+
+    it('should init with mint and continue minting outside init', async () => {
+        const mint = 120n
+        await initializeJettonMaster(mint);
+            
+        // Fetch updated wallet data and validate balance
+        let jettonWalletDataBefore = await jettonWallet.getGetWalletData();
+        expect(jettonWalletDataBefore.balance).toEqual(mint);
+
+
+        const mintResult = await jettonMaster.send(
+            deployer.getSender(),
+            {
+                value: toNano("0.05"),
+            },
+            {
+                $$type: 'JettonMint',
+                query_id: 0n,
+                amount: toNano("1337"),
+                destination: deployer.address,
+            }
+        );
+        expect(mintResult.transactions).toHaveTransaction({
+            from: deployer.address,
+            to: jettonMaster.address,
+            success: true,
+            deploy: false,
+            op: OP_CODES.JettonMint,
+        });
+        expect(mintResult.transactions).toHaveTransaction({
+            from: jettonMaster.address,
+            to: jettonWallet.address,
+            success: true,
+            deploy: false,
+            op: OP_CODES.JettonTransferInternal,
+        });
+
+        let jettonWalletDataAfter = await jettonWallet.getGetWalletData();
+        expect(jettonWalletDataAfter.balance).toEqual(mint + toNano("1337"));
+    });
+
+    it('should init with mint 0 new jettons (using non-null value)', async () => {
+        const mint = 0n;
+        await initializeJettonMaster(mint);
+    
+        try {
+            // Attempt to fetch wallet data , since we didnt proceed with mint, account should be inactive
+            await jettonWallet.getGetWalletData();
+
+            // If no error is thrown, the test should fail
+            throw new Error('Expected an error when accessing a non-active wallet contract');
+        } catch (error) {
+            if (error instanceof Error) {
+                expect(error.message).toContain('Trying to run get method on non-active contract');
+            } else {
+                throw new Error(`Unexpected error type: ${typeof error}`);
+            }
+        }
+    });
+    
+
     it('should return system cell', async () => {
         await initializeJettonMaster(null);
 
         let systemCell = await jettonMaster.getTactSystemCell();
-        //expect(systemCell).toEqualCell(SYSTEM_CELL);
+        expect(systemCell).toEqualCell(SYSTEM_CELL);
     });
     
 });
