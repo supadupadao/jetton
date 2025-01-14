@@ -1,8 +1,8 @@
 # How to contribute to Jetton
 
-❤️ It's great that you are interested in this project!
+❤️ It's great that you are interested! Thank you for investing your time in this project!
 
-📖 This document is guideline for contributing to this repo. If you are looking for "How to work with jetton" please follow [this](PROCESSING.md) document
+📖 This document is guideline for contributing to this repo. If you are looking for "How to work with jetton" please follow [this](DEVELOPMENT.md) document
 
 ℹ️ The following text is mostly guideline and not rule. Use your best judgment, and feel free to propose changes to this document in a pull request.
 
