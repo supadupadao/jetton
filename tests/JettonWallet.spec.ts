@@ -2,7 +2,7 @@ import { Blockchain, SandboxContract, TreasuryContract } from '@ton/sandbox';
 import { beginCell, Builder, toNano } from '@ton/core';
 import { JettonWallet } from '../build/Jetton/tact_JettonWallet';
 import { JettonMaster } from '../build/Jetton/tact_JettonMaster';
-import { OP_CODES } from './constants/opCodes';
+import { OP_CODES , ERROR_CODES  } from './constants/constants';
 import '@ton/test-utils';
 
 const JETTON_NAME = "Test jetton";
@@ -40,6 +40,7 @@ describe('JettonMaster', () => {
                 jetton_description: beginCell().storeStringTail(JETTON_DESCRIPTION).asSlice(),
                 jetton_symbol: beginCell().storeStringTail(JETTON_SYMBOL).asSlice(),
                 max_supply: JETTON_MAX_SUPPLY,
+                mint_amount: null
             }
         );
         await jettonMaster.send(
@@ -129,7 +130,7 @@ describe('JettonMaster', () => {
             deploy: false,
             success: false,
             op: OP_CODES.JettonTransfer,
-            exitCode: 132,
+            exitCode: ERROR_CODES.InvalidOwner,
         });
 
         let jettonWalletData = await jettonWallet.getGetWalletData();
@@ -159,7 +160,7 @@ describe('JettonMaster', () => {
             deploy: false,
             success: false,
             op: OP_CODES.JettonTransfer,
-            exitCode: 6901,
+            exitCode: ERROR_CODES.NotEnoughBalance,
         });
 
         let jettonWalletData = await jettonWallet.getGetWalletData();
@@ -226,7 +227,7 @@ describe('JettonMaster', () => {
             deploy: false,
             success: false,
             op: OP_CODES.JettonBurn,
-            exitCode: 132,
+            exitCode: ERROR_CODES.InvalidOwner,
         });
 
         let jettonWalletData = await jettonWallet.getGetWalletData();
@@ -253,7 +254,7 @@ describe('JettonMaster', () => {
             deploy: false,
             success: false,
             op: OP_CODES.JettonBurn,
-            exitCode: 6901,
+            exitCode: ERROR_CODES.NotEnoughBalance,
         });
 
         let jettonWalletData = await jettonWallet.getGetWalletData();

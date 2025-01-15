@@ -30,6 +30,7 @@ export async function run(provider: NetworkProvider) {
             jetton_description: beginCell().storeStringRefTail('Long' + ' long '.repeat(100) + 'description').asSlice(),
             jetton_symbol: beginCell().storeStringRefTail('SMBL').asSlice(),
             max_supply: toNano(1337),
+            mint_amount: null
         }
     );
     await jettonMaster.send(

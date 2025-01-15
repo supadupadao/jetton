@@ -4,7 +4,9 @@ message(0x133701) JettonInit {
     jetton_description: Slice;
     jetton_symbol: Slice;
     max_supply: Int as coins;
+    mint_amount: Int? as coins;
 }
+
 message(0x133702) JettonInitOk {
     query_id: Int as uint64;
 }
