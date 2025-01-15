@@ -50,9 +50,11 @@ contract JettonMaster with TEP74JettonMaster, TEP89JettonDiscoverable, Deployabl
 
         // Mint tokens during initialization
         if (msg.mint_amount != null && msg.mint_amount!! > 0) {
+            let ctx: Context = context(); 
+
             // Calculate remaining balance for minting
-            let initialTransactionValue = context().value;
-            let forwardFee = context().readForwardFee();
+            let initialTransactionValue = ctx.value;
+            let forwardFee = ctx.readForwardFee();
             let compute_gas: Int = ton("0.01");
             let notify_gas: Int = ton("0.02");
             let remainingValue = initialTransactionValue - notify_gas - compute_gas - forwardFee;
@@ -64,7 +66,7 @@ contract JettonMaster with TEP74JettonMaster, TEP89JettonDiscoverable, Deployabl
             self.mint(msg.mint_amount!!, self.owner, msg.query_id,remainingValue);
 
             send(SendParameters{
-                to: context().sender, // back to the sender
+                to: ctx.sender, // back to the sender
                 value: notify_gas,    //reserved gas for this op
                 bounce: false,
                 mode: 0,
